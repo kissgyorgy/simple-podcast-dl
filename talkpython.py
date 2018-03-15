@@ -3,6 +3,7 @@ import os
 import sys
 import argparse
 from pathlib import Path
+import concurrent.futures
 import requests
 from lxml import etree
 
@@ -61,14 +62,19 @@ def find_missing(download_path: Path, episodes):
                 yield episode
 
 
-def download_episodes(download_path: Path, episodes):
-    for ep in episodes:
-        ep.download(download_path)
+def download_episodes(download_path: Path, episodes, max_threads):
+    futures = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
+        for ep in episodes:
+            future = executor.submit(ep.download, download_path)
+            futures.append(future)
+        concurrent.futures.wait(futures)
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Download Talk Python To Me podcast episodes to the given dir')
     parser.add_argument('--download-dir', default=os.environ.get('DOWNLOAD_DIR', 'episodes'))
+    parser.add_argument('--max-threads', default=os.environ.get('MAX_THREADS', 10))
     return parser.parse_args()
 
 
@@ -78,7 +84,7 @@ def main():
     xml_root = download_rss()
     episodes = make_episodes(xml_root)
     missing_episodes = find_missing(download_path, episodes)
-    download_episodes(download_path, missing_episodes)
+    download_episodes(download_path, missing_episodes, args.max_threads)
     return 0
 
 
