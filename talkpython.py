@@ -15,8 +15,9 @@ class Episode:
     def __init__(self, enclosure):
         self.url = enclosure.get('url')
         self.length = int(enclosure.get('length'))
-        episode_number, original_filename = self.url.split('/')[-2:]
-        self.filename = f'{episode_number}-{original_filename}'
+        self.number, original_filename = self.url.split('/')[-2:]
+        self.number = int(self.number)
+        self.filename = f'{self.number}-{original_filename}'
 
     def download(self, download_path: Path):
         print(f'Getting episode {self.url}', flush=True)
@@ -56,9 +57,12 @@ def find_missing(download_path: Path, episodes):
             print('Found missing episode:', episode.filename, flush=True)
             rv.append(episode)
         else:
+            # Episode 81 has a wrong file size in the RSS, so we have to explicitly skip it
+            if episode.number == 81 and existing_file_size == 60045698:
+                continue
             # it might be partially downloaded, re-encoded or
             # anything wrong with the already downloaded episode
-            if existing_file_size != episode.length:
+            elif existing_file_size != episode.length:
                 print('Episode size mismatch:', episode.filename, existing_file_size, '!=', episode.length, flush=True)
                 rv.append(episode)
     return rv
