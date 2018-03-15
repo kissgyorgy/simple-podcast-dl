@@ -47,18 +47,21 @@ def make_episodes(xml_root):
 
 
 def find_missing(download_path: Path, episodes):
+    rv = []
     for episode in episodes:
         episode_path = download_path / episode.filename
         try:
             existing_file_size = episode_path.stat().st_size
         except FileNotFoundError:
             print('Found missing episode:', episode.filename, flush=True)
-            yield episode
+            rv.append(episode)
         else:
             # it might be partially downloaded, re-encoded or
             # anything wrong with the already downloaded episode
             if existing_file_size != episode.length:
                 print('Episode size mismatch:', episode.filename, existing_file_size, '!=', episode.length, flush=True)
+                rv.append(episode)
+    return rv
 
 
 def download_episodes(download_path: Path, episodes, max_threads):
@@ -83,6 +86,9 @@ def main():
     xml_root = download_rss()
     episodes = make_episodes(xml_root)
     missing_episodes = find_missing(download_path, episodes)
+    if not missing_episodes:
+        print('Every episode is downloaded.')
+        return 0
     download_episodes(download_path, missing_episodes, args.max_threads)
     return 0
 
