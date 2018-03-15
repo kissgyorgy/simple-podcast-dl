@@ -14,7 +14,7 @@ RSS_URL = 'https://talkpython.fm/episodes/rss'
 class Episode:
     def __init__(self, enclosure):
         self.url = enclosure.get('url')
-        self.length = enclosure.get('length')
+        self.length = int(enclosure.get('length'))
         episode_number, original_filename = self.url.split('/')[-2:]
         self.filename = f'{episode_number}-{original_filename}'
 
@@ -58,8 +58,7 @@ def find_missing(download_path: Path, episodes):
             # it might be partially downloaded, re-encoded or
             # anything wrong with the already downloaded episode
             if existing_file_size != episode.length:
-                print('Episode size mismatch:', episode.filename, flush=True)
-                yield episode
+                print('Episode size mismatch:', episode.filename, existing_file_size, '!=', episode.length, flush=True)
 
 
 def download_episodes(download_path: Path, episodes, max_threads):
