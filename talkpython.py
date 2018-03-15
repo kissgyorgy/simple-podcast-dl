@@ -18,6 +18,7 @@ class Episode:
         self.filename = f'{episode_number}-{original_filename}'
 
     def download(self, download_path: Path):
+        print(f'Getting episode {self.url}', flush=True)
         with requests.get(self.url, stream=True) as r:
             full_path = download_path / self.filename
             with full_path.open('wb') as fp:
@@ -33,6 +34,7 @@ def download_rss():
 
 
 def ensure_download_dir(download_dir: str):
+    print('Download directory:', download_dir, flush=True)
     download_path = Path(download_dir)
     download_path.mkdir(parents=True, exist_ok=True)
     return download_path
@@ -49,16 +51,17 @@ def find_missing(download_path: Path, episodes):
         try:
             existing_file_size = episode_path.stat().st_size
         except FileNotFoundError:
+            print('Found missing episode:', episode.filename, flush=True)
             yield episode
         # it might be partially downloaded, re-encoded or
         # anything wrong with the already downloaded episode
         if existing_file_size != episode.length:
+            print('Episode size mismatch:', episode.filename, flush=True)
             yield episode
 
 
 def download_episodes(download_path: Path, episodes):
     for ep in episodes:
-        print(f'Getting episode {ep.url}', flush=True)
         ep.download(download_path)
 
 
