@@ -53,11 +53,12 @@ def find_missing(download_path: Path, episodes):
         except FileNotFoundError:
             print('Found missing episode:', episode.filename, flush=True)
             yield episode
-        # it might be partially downloaded, re-encoded or
-        # anything wrong with the already downloaded episode
-        if existing_file_size != episode.length:
-            print('Episode size mismatch:', episode.filename, flush=True)
-            yield episode
+        else:
+            # it might be partially downloaded, re-encoded or
+            # anything wrong with the already downloaded episode
+            if existing_file_size != episode.length:
+                print('Episode size mismatch:', episode.filename, flush=True)
+                yield episode
 
 
 def download_episodes(download_path: Path, episodes):
