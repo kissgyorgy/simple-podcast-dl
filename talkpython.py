@@ -17,7 +17,7 @@ class Episode:
         self.length = int(enclosure.get('length'))
         self.number, original_filename = self.url.split('/')[-2:]
         self.number = int(self.number)
-        self.filename = f'{self.number}-{original_filename}'
+        self.filename = f'{self.number:04}-{original_filename}'
 
     def download(self, download_path: Path):
         print(f'Getting episode {self.url}', flush=True)
