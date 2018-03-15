@@ -23,7 +23,7 @@ class Episode:
             full_path = download_path / self.filename
             with full_path.open('wb') as fp:
                 print(f'Writing file {self.filename}', flush=True)
-                for chunk in r.iter_content():
+                for chunk in r.iter_content(chunk_size=None):
                     fp.write(chunk)
 
 
