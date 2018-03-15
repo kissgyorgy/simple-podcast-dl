@@ -35,8 +35,8 @@ def download_rss():
 
 
 def ensure_download_dir(download_dir: str):
-    print('Download directory:', download_dir, flush=True)
     download_path = Path(download_dir)
+    print('Download directory:', download_path.resolve(), flush=True)
     download_path.mkdir(parents=True, exist_ok=True)
     return download_path
 
