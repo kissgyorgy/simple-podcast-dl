@@ -91,8 +91,9 @@ def main():
     episodes = make_episodes(xml_root)
     missing_episodes = find_missing(download_path, episodes)
     if not missing_episodes:
-        print('Every episode is downloaded.')
+        print('Every episode is downloaded.', flush=True)
         return 0
+    print(f'Found a total of {len(missing_episodes)} missing episodes.', flush=True)
     download_episodes(download_path, missing_episodes, args.max_threads)
     return 0
 
