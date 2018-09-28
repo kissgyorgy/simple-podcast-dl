@@ -8,7 +8,7 @@ import requests
 from lxml import etree
 
 
-RSS_URL = 'https://talkpython.fm/episodes/rss'
+RSS_URL = 'https://pythonbytes.fm/episodes/rss'
 
 
 class Episode:
