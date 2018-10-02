@@ -3,12 +3,20 @@ import os
 import sys
 import argparse
 from pathlib import Path
+from urllib.parse import urlparse
 import concurrent.futures
 import requests
 from lxml import etree
 
 
-RSS_URL = "https://talkpython.fm/episodes/rss"
+SITE_URL_MAP = {
+    "talkpython": "https://talkpython.fm/episodes/rss",
+    "pythonbytes": "https://pythonbytes.fm/episodes/rss",
+}
+
+
+class InvalidSite(Exception):
+    """Raised when an invalid site is specified."""
 
 
 class Episode:
@@ -29,9 +37,30 @@ class Episode:
                     fp.write(chunk)
 
 
-def download_rss():
+def parse_site(site: str):
+    if site.startswith("http"):
+        parseres = urlparse(site)
+        site = parseres.netloc
+
+    if "." in site:
+        try:
+            short_name = site.split(".")[-2]
+        except IndexError:
+            raise InvalidSite
+    else:
+        short_name = site
+
+    try:
+        site_url = SITE_URL_MAP[short_name]
+    except KeyError:
+        raise InvalidSite
+
+    return short_name, site_url
+
+
+def download_rss(site_url: str):
     print("Downloading RSS...", flush=True)
-    res = requests.get(RSS_URL)
+    res = requests.get(site_url)
     return etree.XML(res.content)
 
 
@@ -47,7 +76,7 @@ def make_episodes(xml_root):
     return (Episode(enc) for enc in enclosures)
 
 
-def find_missing(download_path: Path, episodes):
+def find_missing(short_name, download_path: Path, episodes):
     rv = []
     for episode in episodes:
         episode_path = download_path / episode.filename
@@ -58,7 +87,11 @@ def find_missing(download_path: Path, episodes):
             rv.append(episode)
         else:
             # Episode 81 has a wrong file size in the RSS, so we have to explicitly skip it
-            if episode.number == 81 and existing_file_size == 60_045_698:
+            if (
+                short_name == "talkpython"
+                and episode.number == 81
+                and existing_file_size == 60_045_698
+            ):
                 continue
             # it might be partially downloaded, re-encoded or
             # anything wrong with the already downloaded episode
@@ -86,24 +119,47 @@ def download_episodes(download_path: Path, episodes, max_threads):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Download Talk Python To Me podcast episodes to the given dir"
+        description="Download podcast episodes to the given dir"
     )
+    parser.add_argument(
+        "podcast_site",
+        metavar="podcast-site",
+        help=(
+            "URL or domain or short name for the podcast site, "
+            "e.g. pythonbytes.fm or talkpython or https://talkpython.fm"
+        ),
+    )
+
     parser.add_argument(
         "--download-dir", default=os.environ.get("DOWNLOAD_DIR", "episodes")
     )
+
     parser.add_argument("--max-threads", default=os.environ.get("MAX_THREADS", 10))
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
+
+    try:
+        short_name, site_url = parse_site(args.podcast_site)
+    except InvalidSite:
+        supported_sites = tuple(SITE_URL_MAP.keys())
+        print(
+            f'The given podcast site "{short_name}" is not supported or invalid.\n'
+            f"Try one of: {supported_sites}"
+        )
+        return 1
+
     download_path = ensure_download_dir(args.download_dir)
-    xml_root = download_rss()
+    xml_root = download_rss(site_url)
     episodes = make_episodes(xml_root)
-    missing_episodes = find_missing(download_path, episodes)
+    missing_episodes = find_missing(short_name, download_path, episodes)
+
     if not missing_episodes:
         print("Every episode is downloaded.", flush=True)
         return 0
+
     print(f"Found a total of {len(missing_episodes)} missing episodes.", flush=True)
     download_episodes(download_path, missing_episodes, args.max_threads)
     return 0
