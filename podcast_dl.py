@@ -30,8 +30,8 @@ class Episode:
         self.full_path = self.download_dir / self.filename
 
     @property
-    def is_downloaded(self):
-        return self.full_path.exists()
+    def is_missing(self):
+        return not self.full_path.exists()
 
     def download(self):
         print(f"Getting episode {self.url}", flush=True)
@@ -84,14 +84,14 @@ def make_episodes(xml_root, download_dir: Path):
     return (Episode(enc, download_dir) for enc in enclosures)
 
 
-def find_missing(episodes):
+def find_missing(all_episodes):
     print("Searching missing episodes...", flush=True)
-    rv = []
-    for episode in episodes:
-        if not episode.is_downloaded:
-            print("Found missing episode:", episode.filename, flush=True)
-            rv.append(episode)
-    return rv
+
+    def printret(episode):
+        print("Found missing episode:", episode.filename, flush=True)
+        return episode
+
+    return [printret(e) for e in all_episodes if e.is_missing]
 
 
 def download_episodes(episodes, max_threads):
@@ -144,8 +144,8 @@ def main():
 
     ensure_download_dir(args.download_dir)
     xml_root = download_rss(site_url)
-    episodes = make_episodes(xml_root, args.download_dir)
-    missing_episodes = find_missing(episodes)
+    all_episodes = make_episodes(xml_root, args.download_dir)
+    missing_episodes = find_missing(all_episodes)
 
     if not missing_episodes:
         print("Every episode is downloaded.", flush=True)
