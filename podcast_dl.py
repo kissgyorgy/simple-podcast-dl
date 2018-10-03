@@ -29,12 +29,17 @@ class Episode:
 
     def download(self, download_path: Path):
         print(f"Getting episode {self.url}", flush=True)
-        with requests.get(self.url, stream=True) as r:
+        with requests.get(self.url, stream=True) as response:
             full_path = download_path / self.filename
-            with full_path.open("wb") as fp:
-                print(f"Writing file {self.filename}", flush=True)
-                for chunk in r.iter_content(chunk_size=None):
-                    fp.write(chunk)
+            self._save_atomic(full_path, response)
+
+    def _save_atomic(self, full_path: Path, response):
+        partial_filename = full_path.with_suffix(".partial")
+        with partial_filename.open("wb") as fp:
+            print(f"Writing file {self.filename}.partial", flush=True)
+            for chunk in response.iter_content(chunk_size=None):
+                fp.write(chunk)
+        partial_filename.rename(full_path)
 
 
 def parse_site(site: str):
@@ -76,35 +81,14 @@ def make_episodes(xml_root):
     return (Episode(enc) for enc in enclosures)
 
 
-def find_missing(short_name, download_path: Path, episodes):
+def find_missing(download_path: Path, episodes):
+    print("Searching missing episodes...", flush=True)
     rv = []
     for episode in episodes:
         episode_path = download_path / episode.filename
-        try:
-            existing_file_size = episode_path.stat().st_size
-        except FileNotFoundError:
+        if not episode_path.exists():
             print("Found missing episode:", episode.filename, flush=True)
             rv.append(episode)
-        else:
-            # Episode 81 has a wrong file size in the RSS, so we have to explicitly skip it
-            if (
-                short_name == "talkpython"
-                and episode.number == 81
-                and existing_file_size == 60_045_698
-            ):
-                continue
-            # it might be partially downloaded, re-encoded or
-            # anything wrong with the already downloaded episode
-            elif existing_file_size != episode.length:
-                print(
-                    "Episode size mismatch:",
-                    episode.filename,
-                    existing_file_size,
-                    "!=",
-                    episode.length,
-                    flush=True,
-                )
-                rv.append(episode)
     return rv
 
 
@@ -154,7 +138,7 @@ def main():
     download_path = ensure_download_dir(args.download_dir)
     xml_root = download_rss(site_url)
     episodes = make_episodes(xml_root)
-    missing_episodes = find_missing(short_name, download_path, episodes)
+    missing_episodes = find_missing(download_path, episodes)
 
     if not missing_episodes:
         print("Every episode is downloaded.", flush=True)
