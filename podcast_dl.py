@@ -94,12 +94,9 @@ def find_missing(all_episodes):
     return [printret(e) for e in all_episodes if e.is_missing]
 
 
-def download_episodes(episodes, max_threads):
-    futures = []
+def download_episodes(episodes, max_threads: int):
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
-        for ep in episodes:
-            future = executor.submit(ep.download)
-            futures.append(future)
+        futures = [executor.submit(ep.download) for ep in episodes]
         concurrent.futures.wait(futures)
 
 
