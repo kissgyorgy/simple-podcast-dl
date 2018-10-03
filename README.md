@@ -10,6 +10,12 @@ I use it in a Jenkins job to synchronize all the episodes to [Nextcloud](https:/
 so it will be synced to my phone and I can listen the episodes without internet connection.
 
 
+## Supported podcasts
+
+- Talk Python To Me (https://talkpython.fm/)
+- Python Bytes (https://pythonbytes.fm/)
+
+
 ## Usage
 
 ```plain
