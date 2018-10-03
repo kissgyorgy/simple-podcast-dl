@@ -27,10 +27,10 @@ class Episode:
         self.number = int(self.number)
         self.filename = f"{self.number:04}-{original_filename}"
 
-    def download(self, download_path: Path):
+    def download(self, download_dir: Path):
         print(f"Getting episode {self.url}", flush=True)
         with requests.get(self.url, stream=True) as response:
-            full_path = download_path / self.filename
+            full_path = download_dir / self.filename
             self._save_atomic(full_path, response)
 
     def _save_atomic(self, full_path: Path, response):
@@ -69,11 +69,9 @@ def download_rss(site_url: str):
     return etree.XML(res.content)
 
 
-def ensure_download_dir(download_dir: str):
-    download_path = Path(download_dir)
-    print("Download directory:", download_path.resolve(), flush=True)
-    download_path.mkdir(parents=True, exist_ok=True)
-    return download_path
+def ensure_download_dir(download_dir: Path):
+    print("Download directory:", download_dir.resolve(), flush=True)
+    download_dir.mkdir(parents=True, exist_ok=True)
 
 
 def make_episodes(xml_root):
@@ -81,22 +79,22 @@ def make_episodes(xml_root):
     return (Episode(enc) for enc in enclosures)
 
 
-def find_missing(download_path: Path, episodes):
+def find_missing(download_dir: Path, episodes):
     print("Searching missing episodes...", flush=True)
     rv = []
     for episode in episodes:
-        episode_path = download_path / episode.filename
+        episode_path = download_dir / episode.filename
         if not episode_path.exists():
             print("Found missing episode:", episode.filename, flush=True)
             rv.append(episode)
     return rv
 
 
-def download_episodes(download_path: Path, episodes, max_threads):
+def download_episodes(download_dir: Path, episodes, max_threads):
     futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
         for ep in episodes:
-            future = executor.submit(ep.download, download_path)
+            future = executor.submit(ep.download, download_dir)
             futures.append(future)
         concurrent.futures.wait(futures)
 
@@ -115,7 +113,7 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--download-dir", default=os.environ.get("DOWNLOAD_DIR", "episodes")
+        "--download-dir", type=Path, default=os.environ.get("DOWNLOAD_DIR", "episodes")
     )
 
     parser.add_argument(
@@ -137,17 +135,17 @@ def main():
         )
         return 1
 
-    download_path = ensure_download_dir(args.download_dir)
+    ensure_download_dir(args.download_dir)
     xml_root = download_rss(site_url)
     episodes = make_episodes(xml_root)
-    missing_episodes = find_missing(download_path, episodes)
+    missing_episodes = find_missing(args.download_dir, episodes)
 
     if not missing_episodes:
         print("Every episode is downloaded.", flush=True)
         return 0
 
     print(f"Found a total of {len(missing_episodes)} missing episodes.", flush=True)
-    download_episodes(download_path, missing_episodes, args.max_threads)
+    download_episodes(args.download_dir, missing_episodes, args.max_threads)
     return 0
 
 
