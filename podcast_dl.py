@@ -113,11 +113,14 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--download-dir", type=Path, default=os.environ.get("DOWNLOAD_DIR", "episodes")
+        "-d",
+        "--download-dir",
+        type=Path,
+        default=os.environ.get("DOWNLOAD_DIR", "episodes"),
     )
 
     parser.add_argument(
-        "--max-threads", type=int, default=os.environ.get("MAX_THREADS", 10)
+        "-t", "--max-threads", type=int, default=os.environ.get("MAX_THREADS", 10)
     )
     return parser.parse_args()
 

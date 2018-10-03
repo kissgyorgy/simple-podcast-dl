@@ -13,9 +13,7 @@ so it will be synced to my phone and I can listen the episodes without internet 
 ## Usage
 
 ```plain
-usage: podcast_dl.py [-h] [--download-dir DOWNLOAD_DIR]
-                     [--max-threads MAX_THREADS]
-                     podcast-site
+usage: podcast_dl.py [-h] [-d DOWNLOAD_DIR] [-t MAX_THREADS] podcast-site
 
 Download podcast episodes to the given dir
 
@@ -25,6 +23,6 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  --download-dir DOWNLOAD_DIR
-  --max-threads MAX_THREADS
+  -d DOWNLOAD_DIR, --download-dir DOWNLOAD_DIR
+  -t MAX_THREADS, --max-threads MAX_THREADS
 ```
