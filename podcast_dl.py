@@ -20,26 +20,31 @@ class InvalidSite(Exception):
 
 
 class Episode:
-    def __init__(self, enclosure):
+    def __init__(self, enclosure, download_dir: Path):
         self.url = enclosure.get("url")
         self.length = int(enclosure.get("length"))
         self.number, original_filename = self.url.split("/")[-2:]
         self.number = int(self.number)
+        self.download_dir = download_dir
         self.filename = f"{self.number:04}-{original_filename}"
+        self.full_path = self.download_dir / self.filename
 
-    def download(self, download_dir: Path):
+    @property
+    def is_downloaded(self):
+        return self.full_path.exists()
+
+    def download(self):
         print(f"Getting episode {self.url}", flush=True)
         with requests.get(self.url, stream=True) as response:
-            full_path = download_dir / self.filename
-            self._save_atomic(full_path, response)
+            self._save_atomic(response)
 
-    def _save_atomic(self, full_path: Path, response):
-        partial_filename = full_path.with_suffix(".partial")
+    def _save_atomic(self, response):
+        partial_filename = self.full_path.with_suffix(".partial")
         with partial_filename.open("wb") as fp:
             print(f"Writing file {self.filename}.partial", flush=True)
             for chunk in response.iter_content(chunk_size=None):
                 fp.write(chunk)
-        partial_filename.rename(full_path)
+        partial_filename.rename(self.full_path)
 
 
 def parse_site(site: str):
@@ -74,27 +79,26 @@ def ensure_download_dir(download_dir: Path):
     download_dir.mkdir(parents=True, exist_ok=True)
 
 
-def make_episodes(xml_root):
+def make_episodes(xml_root, download_dir: Path):
     enclosures = xml_root.xpath("//enclosure")
-    return (Episode(enc) for enc in enclosures)
+    return (Episode(enc, download_dir) for enc in enclosures)
 
 
-def find_missing(download_dir: Path, episodes):
+def find_missing(episodes):
     print("Searching missing episodes...", flush=True)
     rv = []
     for episode in episodes:
-        episode_path = download_dir / episode.filename
-        if not episode_path.exists():
+        if not episode.is_downloaded:
             print("Found missing episode:", episode.filename, flush=True)
             rv.append(episode)
     return rv
 
 
-def download_episodes(download_dir: Path, episodes, max_threads):
+def download_episodes(episodes, max_threads):
     futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
         for ep in episodes:
-            future = executor.submit(ep.download, download_dir)
+            future = executor.submit(ep.download)
             futures.append(future)
         concurrent.futures.wait(futures)
 
@@ -140,15 +144,15 @@ def main():
 
     ensure_download_dir(args.download_dir)
     xml_root = download_rss(site_url)
-    episodes = make_episodes(xml_root)
-    missing_episodes = find_missing(args.download_dir, episodes)
+    episodes = make_episodes(xml_root, args.download_dir)
+    missing_episodes = find_missing(episodes)
 
     if not missing_episodes:
         print("Every episode is downloaded.", flush=True)
         return 0
 
     print(f"Found a total of {len(missing_episodes)} missing episodes.", flush=True)
-    download_episodes(args.download_dir, missing_episodes, args.max_threads)
+    download_episodes(missing_episodes, args.max_threads)
     return 0
 
 
