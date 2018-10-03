@@ -1,4 +1,4 @@
-# Talk Python To Me Podcast downloader script
+# Podcast downloader
 
 This script is able to download missing episodes from the [Talk Python website](https://talkpython.fm/)
 and [Python Bytes website](https://pythonbytes.fm/) automatically. It check if the file exists or the
