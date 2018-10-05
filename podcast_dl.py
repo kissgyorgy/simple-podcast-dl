@@ -102,13 +102,12 @@ def download_episodes(episodes, max_threads: int):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Download podcast episodes to the given dir"
+        description="Download podcast episodes to the given directory"
     )
     parser.add_argument(
-        "podcast_site",
-        metavar="podcast-site",
+        "podcast",
         help=(
-            "URL or domain or short name for the podcast site, "
+            "URL or domain or short name for the podcast, "
             "e.g. pythonbytes.fm or talkpython or https://talkpython.fm"
         ),
     )
@@ -130,12 +129,12 @@ def main():
     args = parse_args()
 
     try:
-        short_name, site_url = parse_site(args.podcast_site)
+        podcast, site_url = parse_site(args.podcast)
     except InvalidSite:
-        supported_sites = tuple(SITE_URL_MAP.keys())
+        supported_podcasts = tuple(SITE_URL_MAP.keys())
         print(
-            f'The given podcast site "{short_name}" is not supported or invalid.\n'
-            f"Try one of: {supported_sites}"
+            f'The given podcast "{podcast}" is not supported or invalid.\n'
+            f"Try one of: {supported_podcasts}"
         )
         return 1
 

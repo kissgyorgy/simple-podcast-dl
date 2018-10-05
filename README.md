@@ -1,12 +1,16 @@
-# Podcast downloader
+# Simple podcast downloader (podcatcher)
 
-This script is able to download missing episodes from the [Talk Python website](https://talkpython.fm/)
-and [Python Bytes website](https://pythonbytes.fm/) automatically. It check if the file exists or the
-file size is different. It checks every episodes [from the talkpython.fm RSSfeed](https://talkpython.fm/episodes/rss) and
-[from the pythonbytes.fm RSS feed](https://pythonbytes.fm/episodes/rss). The download folder and
-the number of threads can be customized.
+The simplest podcast downloader with no configuration, no tagging, no nothing.  
+It simply downloads missing episodes from supported podcasts to a directory.  
+*That's it.*
 
-I use it in a Jenkins job to synchronize all the episodes to [Nextcloud](https://nextcloud.com/),
+You don't even have to know the URL of the RSS, you can give it a website URL,  
+a domain name, or simply the podcast name, it will find out which podcast you want to download.  
+
+It doesn't have a complicated UI or fancy features, it's just a command line application.  
+The download folder and the number of threads can be customized.
+
+I use it in a Jenkins job to synchronize all the episodes to [Nextcloud](https://nextcloud.com/),  
 so it will be synced to my phone and I can listen the episodes without internet connection.
 
 
@@ -19,12 +23,12 @@ so it will be synced to my phone and I can listen the episodes without internet 
 ## Usage
 
 ```plain
-usage: podcast_dl.py [-h] [-d DOWNLOAD_DIR] [-t MAX_THREADS] podcast-site
+usage: podcast-dl [-h] [-d DOWNLOAD_DIR] [-t MAX_THREADS] podcast
 
-Download podcast episodes to the given dir
+Download podcast episodes to the given directory
 
 positional arguments:
-  podcast-site          URL or domain or short name for the podcast site, e.g.
+  podcast               URL or domain or short name for the podcast, e.g.
                         pythonbytes.fm or talkpython or https://talkpython.fm
 
 optional arguments:
