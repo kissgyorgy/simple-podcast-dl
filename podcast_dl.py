@@ -48,14 +48,15 @@ class Episode:
         return not self.full_path.exists()
 
     def download(self):
-        print(f"Getting episode {self.url}", flush=True)
+        print(f"Getting episode: {self.url}", flush=True)
         with requests.get(self.url, stream=True) as response:
             self._save_atomic(response)
+        print(f"Finished downloading: {self.full_path}")
 
     def _save_atomic(self, response):
         partial_filename = self.full_path.with_suffix(".partial")
         with partial_filename.open("wb") as fp:
-            print(f"Writing file {self.filename}.partial", flush=True)
+            print(f"Writing file: {self.filename}.partial", flush=True)
             for chunk in response.iter_content(chunk_size=None):
                 fp.write(chunk)
         partial_filename.rename(self.full_path)
