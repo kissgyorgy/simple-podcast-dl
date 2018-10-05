@@ -9,6 +9,12 @@ podcast-dl = {editable = true, path = "."}
 [dev-packages]
 pytest = "*"
 pytest-sugar = "*"
+wheel = "*"
+twine = "*"
 
 [requires]
 python_version = "3.6"
+
+[scripts]
+make-wheel = "python setup.py bdist_wheel"
+release = "twine upload dist/*"
