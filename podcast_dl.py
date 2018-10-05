@@ -12,6 +12,7 @@ from lxml import etree
 SITE_URL_MAP = {
     "talkpython": "https://talkpython.fm/episodes/rss",
     "pythonbytes": "https://pythonbytes.fm/episodes/rss",
+    "changelog": "https://changelog.com/podcast/feed",
 }
 
 
@@ -23,11 +24,24 @@ class Episode:
     def __init__(self, enclosure, download_dir: Path):
         self.url = enclosure.get("url")
         self.length = int(enclosure.get("length"))
-        self.number, original_filename = self.url.split("/")[-2:]
-        self.number = int(self.number)
+        self.filename = self._parse_filename(self.url)
         self.download_dir = download_dir
-        self.filename = f"{self.number:04}-{original_filename}"
         self.full_path = self.download_dir / self.filename
+
+    @staticmethod
+    def _parse_filename(url):
+        number, original_filename = url.split("/")[-2:]
+        try:
+            number = int(number)
+            return f"{number:04}-{original_filename}"
+        except ValueError:
+            print(
+                "WARNING: Invalid episode number in filename. The episode "
+                f'"{original_filename}" will not have a numeric episode number prefix.',
+                file=sys.stderr,
+                flush=True,
+            )
+            return original_filename
 
     @property
     def is_missing(self):
