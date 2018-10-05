@@ -11,6 +11,7 @@ pytest = "*"
 pytest-sugar = "*"
 wheel = "*"
 twine = "*"
+black = "*"
 
 [requires]
 python_version = "3.6"
