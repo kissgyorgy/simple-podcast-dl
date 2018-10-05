@@ -6,15 +6,11 @@ from lxml import etree
 from .podcasts import PODCAST_MAP
 
 
-class InvalidSite(Exception):
-    """Raised when an invalid site is specified."""
-
-
 class Episode:
-    def __init__(self, enclosure, download_dir: Path):
+    def __init__(self, enclosure, filename_parser: callable, download_dir: Path):
         self.url = enclosure.get("url")
         self.length = int(enclosure.get("length"))
-        self.filename = self._parse_filename(self.url)
+        self.filename = filename_parser(self.url)
         self.download_dir = download_dir
         self.full_path = self.download_dir / self.filename
 
@@ -38,7 +34,7 @@ class Episode:
 
 
 def download_rss(site_url: str):
-    print("Downloading RSS...", flush=True)
+    print(f"Downloading RSS feed: {site_url} ...", flush=True)
     res = requests.get(site_url)
     return etree.XML(res.content)
 
@@ -48,9 +44,9 @@ def ensure_download_dir(download_dir: Path):
     download_dir.mkdir(parents=True, exist_ok=True)
 
 
-def make_episodes(xml_root, download_dir: Path):
+def make_episodes(xml_root, filename_parser: callable, download_dir: Path):
     enclosures = xml_root.xpath("//enclosure")
-    return (Episode(enc, download_dir) for enc in enclosures)
+    return (Episode(enc, filename_parser, download_dir) for enc in enclosures)
 
 
 def find_missing(all_episodes):

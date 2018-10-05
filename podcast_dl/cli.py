@@ -3,7 +3,15 @@ import os
 import sys
 import argparse
 from pathlib import Path
-from .podcasts import parse_site
+from .site_parser import parse_site, InvalidSite
+from .podcasts import PODCAST_MAP
+from .podcast_dl import (
+    ensure_download_dir,
+    download_rss,
+    make_episodes,
+    find_missing,
+    download_episodes,
+)
 
 
 def parse_args():
@@ -35,18 +43,18 @@ def main():
     args = parse_args()
 
     try:
-        podcast, site_url = parse_site(args.podcast)
+        podcast, site_url, filename_parser = parse_site(args.podcast)
     except InvalidSite:
         supported_podcasts = tuple(PODCAST_MAP.keys())
         print(
-            f'The given podcast "{podcast}" is not supported or invalid.\n'
+            f'The given podcast "{args.podcast}" is not supported or invalid.\n'
             f"Try one of: {supported_podcasts}"
         )
         return 1
 
     ensure_download_dir(args.download_dir)
     xml_root = download_rss(site_url)
-    all_episodes = make_episodes(xml_root, args.download_dir)
+    all_episodes = make_episodes(xml_root, filename_parser, args.download_dir)
     missing_episodes = find_missing(all_episodes)
 
     if not missing_episodes:
