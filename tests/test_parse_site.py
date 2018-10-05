@@ -1,4 +1,4 @@
-from podcast_dl import parse_site, InvalidSite
+from podcast_dl.podcast_dl import parse_site, InvalidSite
 import pytest
 
 

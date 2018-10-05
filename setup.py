@@ -7,7 +7,7 @@ install_requires = [
 ]
 
 console_scripts = [
-    "podcast-dl = podcast_dl:main",
+    "podcast-dl = podcast_dl.cli:main",
 ]
 
 classifiers = [
