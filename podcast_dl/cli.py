@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import os
 import sys
-import argparse
 from pathlib import Path
+import click
 from .site_parser import parse_site, InvalidSite
 from .podcasts import PODCAST_MAP
 from .podcast_dl import (
@@ -13,48 +13,34 @@ from .podcast_dl import (
     download_episodes,
 )
 
+HELP = """
+Download podcast episodes to the given directory
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Download podcast episodes to the given directory"
-    )
-    parser.add_argument(
-        "podcast",
-        help=(
-            "URL or domain or short name for the podcast, "
-            "e.g. pythonbytes.fm or talkpython or https://talkpython.fm"
-        ),
-    )
-
-    parser.add_argument(
-        "-d",
-        "--download-dir",
-        type=Path,
-        default=os.environ.get("DOWNLOAD_DIR", "episodes"),
-    )
-
-    parser.add_argument(
-        "-t", "--max-threads", type=int, default=os.environ.get("MAX_THREADS", 10)
-    )
-    return parser.parse_args()
+URL or domain or short name for the PODCAST argument can be specified,
+e.g. pythonbytes.fm or talkpython or https://talkpython.fm
+"""
 
 
-def main():
-    args = parse_args()
-
+@click.command(help=HELP)
+@click.argument("podcast_name", metavar="PODCAST")
+@click.option(
+    "-d", "--download-dir", type=Path, default="episodes", envvar="DOWNLOAD_DIR"
+)
+@click.option("-t", "--max-threads", type=int, default=10, envvar="MAX_THREADS")
+def main(podcast_name, download_dir, max_threads):
     try:
-        podcast = parse_site(args.podcast)
+        podcast = parse_site(podcast_name)
     except InvalidSite:
         supported_podcasts = tuple(PODCAST_MAP.keys())
         print(
-            f'The given podcast "{args.podcast}" is not supported or invalid.\n'
+            f'The given podcast "{podcast_name}" is not supported or invalid.\n'
             f"Try one of: {supported_podcasts}"
         )
         return 1
 
-    ensure_download_dir(args.download_dir)
+    ensure_download_dir(download_dir)
     xml_root = download_rss(podcast.rss)
-    all_episodes = make_episodes(xml_root, podcast, args.download_dir)
+    all_episodes = make_episodes(xml_root, podcast, download_dir)
     missing_episodes = find_missing(all_episodes)
 
     if not missing_episodes:
@@ -62,9 +48,5 @@ def main():
         return 0
 
     print(f"Found a total of {len(missing_episodes)} missing episodes.", flush=True)
-    download_episodes(missing_episodes, args.max_threads)
+    download_episodes(missing_episodes, max_threads)
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
