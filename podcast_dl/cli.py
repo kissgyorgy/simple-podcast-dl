@@ -21,13 +21,19 @@ e.g. pythonbytes.fm or talkpython or https://talkpython.fm
 """
 
 
-@click.command(help=HELP)
-@click.argument("podcast_name", metavar="PODCAST")
+@click.command(help=HELP, context_settings={"help_option_names": ["--help", "-h"]})
+@click.argument("podcast_name", metavar="PODCAST", required=False)
 @click.option(
     "-d", "--download-dir", type=Path, default="episodes", envvar="DOWNLOAD_DIR"
 )
 @click.option("-t", "--max-threads", type=int, default=10, envvar="MAX_THREADS")
-def main(podcast_name, download_dir, max_threads):
+@click.pass_context
+def main(ctx, podcast_name, download_dir, max_threads):
+    if len(sys.argv) == 1:
+        help_text = ctx.command.get_help(ctx)
+        click.echo(help_text)
+        return 0
+
     try:
         podcast = parse_site(podcast_name)
     except InvalidSite:
