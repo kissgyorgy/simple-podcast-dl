@@ -52,3 +52,39 @@ def test_simple(url, expected):
 )
 def test_fallback(url, expected):
     assert fipa.fallback(url) == expected
+
+
+@pytest.mark.parametrize(
+    "url, expected",
+    (
+        (
+            "https://www.podcastinit.com/podlove/file/79/s/feed/c/mp3/introductory_episode.mp3",
+            "0000-introductory_episode.mp3",
+        ),
+        (
+            "https://www.podcastinit.com/podlove/file/78/s/feed/c/mp3/Episode_1_-_Thomas_Hatch.mp3",
+            "0001-Episode_1_-_Thomas_Hatch.mp3",
+        ),
+        (
+            "https://www.podcastinit.com/podlove/file/69/s/feed/c/mp3/Episode_10_-_Brian_Granger_and_Fernando_Perez_of_the_IPython_Project.mp3",
+            "0010-Episode_10_-_Brian_Granger_and_Fernando_Perez_of_the_IPython_Project.mp3",
+        ),
+        (
+            "https://www.podcastinit.com/podlove/file/84/s/feed/c/mp3/Episode-80-Sean-Gillies.mp3",
+            "0080-Episode-80-Sean-Gillies.mp3",
+        ),
+        (
+            "https://www.podcastinit.com/podlove/file/454/s/feed/c/mp3/Episode-114-Factory-Automation-with-Jonas-Neuberg.mp3",
+            "0114-Episode-114-Factory-Automation-with-Jonas-Neuberg.mp3",
+        ),
+    ),
+    ids=[
+        "intro",
+        "underscore-1-digit",
+        "underscore-2-digits",
+        "dash-2-digits",
+        "dash-3-digits",
+    ],
+)
+def test_podcastinit(url, expected):
+    assert fipa.podcastinit(url) == expected

@@ -19,6 +19,8 @@ so it will be synced to my phone and I can listen the episodes without internet 
 - Talk Python To Me (https://talkpython.fm/)
 - Python Bytes (https://pythonbytes.fm/)
 - The Changelog (https://changelog.com/podcast)
+- Podcast.\_\_init__ (https://www.podcastinit.com/)
+
 
 ## Usage
 
