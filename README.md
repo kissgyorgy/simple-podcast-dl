@@ -42,7 +42,7 @@ Usage: podcast-dl [OPTIONS] PODCAST
 Options:
   -d, --download-dir PATH         Where to save downloaded episodes. Can be
                                   specified by the DOWNLOAD_DIR environment
-                                  variable.  [default: ./episodes/]
+                                  variable.  [default: (specified PODCAST)]
   -t, --max-threads INTEGER RANGE
                                   Number of threads to start for the download.
                                   Can be specified with the MAX_THREADS
