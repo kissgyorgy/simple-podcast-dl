@@ -37,12 +37,31 @@ def list_podcasts(ctx, param, value):
 @click.command(help=HELP, context_settings={"help_option_names": ["--help", "-h"]})
 @click.argument("podcast_name", metavar="PODCAST", required=False)
 @click.option(
-    "-d", "--download-dir", type=Path, default="episodes", envvar="DOWNLOAD_DIR"
+    "-d",
+    "--download-dir",
+    type=Path,
+    default="episodes",
+    envvar="DOWNLOAD_DIR",
+    help=(
+        "Where to save downloaded episodes. Can be specified by the "
+        "DOWNLOAD_DIR environment variable. Default: ./episodes/"
+    ),
 )
-@click.option("-t", "--max-threads", type=int, default=10, envvar="MAX_THREADS")
+@click.option(
+    "-t",
+    "--max-threads",
+    type=int,
+    default=10,
+    envvar="MAX_THREADS",
+    help=(
+        "Number of threads to start for the download. Can be specified"
+        " with the MAX_THREADS environment variable. Default: 10"
+    ),
+)
 @click.option(
     "-l",
     "--list-podcasts",
+    help="List of supported podcasts, ordered by name.",
     is_flag=True,
     is_eager=True,
     expose_value=False,
