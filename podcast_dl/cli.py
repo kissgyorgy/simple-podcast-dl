@@ -40,23 +40,25 @@ def list_podcasts(ctx, param, value):
     "-d",
     "--download-dir",
     type=Path,
-    default="episodes",
+    default="./episodes/",
     envvar="DOWNLOAD_DIR",
     help=(
         "Where to save downloaded episodes. Can be specified by the "
-        "DOWNLOAD_DIR environment variable. Default: ./episodes/"
+        "DOWNLOAD_DIR environment variable."
     ),
+    show_default=True,
 )
 @click.option(
     "-t",
     "--max-threads",
-    type=int,
+    type=click.IntRange(0, 10),
     default=10,
     envvar="MAX_THREADS",
     help=(
         "Number of threads to start for the download. Can be specified"
-        " with the MAX_THREADS environment variable. Default: 10"
+        " with the MAX_THREADS environment variable."
     ),
+    show_default=True,
 )
 @click.option(
     "-l",

@@ -40,15 +40,16 @@ Usage: podcast-dl [OPTIONS] PODCAST
   e.g. pythonbytes.fm or talkpython or https://talkpython.fm
 
 Options:
-  -d, --download-dir PATH    Where to save downloaded episodes. Can be
-                             specified by the DOWNLOAD_DIR environment
-                             variable. Default: ./episodes/
-  -t, --max-threads INTEGER  Number of threads to start for the download. Can
-                             be specified with the MAX_THREADS environment
-                             variable. Default: 10
-  -l, --list-podcasts        List of supported podcasts, ordered by name.
-  -V, --version              Show the version and exit.
-  -h, --help                 Show this message and exit.
+  -d, --download-dir PATH         Where to save downloaded episodes. Can be
+                                  specified by the DOWNLOAD_DIR environment
+                                  variable.  [default: ./episodes/]
+  -t, --max-threads INTEGER RANGE
+                                  Number of threads to start for the download.
+                                  Can be specified with the MAX_THREADS
+                                  environment variable.  [default: 10]
+  -l, --list-podcasts             List of supported podcasts, ordered by name.
+  -V, --version                   Show the version and exit.
+  -h, --help                      Show this message and exit.
 ```
 
 
