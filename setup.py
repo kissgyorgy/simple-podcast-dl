@@ -29,7 +29,7 @@ setup(
     author_email="kissgyorgy@me.com",
     url="https://github.com/kissgyorgy/simple-podcast-dl",
     license="MIT",
-    py_modules=["podcast_dl"],
+    packages=["podcast_dl"],
     install_requires=install_requires,
     tests_require=["pytest", "pytest-sugar"],
     entry_points={"console_scripts": console_scripts},
