@@ -3,14 +3,14 @@ from urllib.parse import urlparse
 import concurrent.futures
 import requests
 from lxml import etree
-from .podcasts import PODCAST_MAP
+from .podcasts import Podcast, PODCAST_MAP
 
 
 class Episode:
-    def __init__(self, enclosure, filename_parser: callable, download_dir: Path):
+    def __init__(self, enclosure, podcast: Podcast, download_dir: Path):
         self.url = enclosure.get("url")
         self.length = int(enclosure.get("length"))
-        self.filename = filename_parser(self.url)
+        self.filename = podcast.filename_parser(self.url)
         self.download_dir = download_dir
         self.full_path = self.download_dir / self.filename
 
@@ -33,9 +33,9 @@ class Episode:
         partial_filename.rename(self.full_path)
 
 
-def download_rss(site_url: str):
-    print(f"Downloading RSS feed: {site_url} ...", flush=True)
-    res = requests.get(site_url)
+def download_rss(rss_url: str):
+    print(f"Downloading RSS feed: {rss_url} ...", flush=True)
+    res = requests.get(rss_url)
     return etree.XML(res.content)
 
 
@@ -44,9 +44,9 @@ def ensure_download_dir(download_dir: Path):
     download_dir.mkdir(parents=True, exist_ok=True)
 
 
-def make_episodes(xml_root, filename_parser: callable, download_dir: Path):
+def make_episodes(xml_root, podcast: Podcast, download_dir: Path):
     enclosures = xml_root.xpath("//enclosure")
-    return (Episode(enc, filename_parser, download_dir) for enc in enclosures)
+    return (Episode(enc, podcast, download_dir) for enc in enclosures)
 
 
 def find_missing(all_episodes):

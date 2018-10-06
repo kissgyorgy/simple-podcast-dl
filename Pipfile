@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 podcast-dl = {editable = true, path = "."}
+attrs = "*"
 
 [dev-packages]
 pytest = "*"

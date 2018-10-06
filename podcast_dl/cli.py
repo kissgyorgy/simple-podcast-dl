@@ -43,7 +43,7 @@ def main():
     args = parse_args()
 
     try:
-        podcast, site_url, filename_parser = parse_site(args.podcast)
+        podcast = parse_site(args.podcast)
     except InvalidSite:
         supported_podcasts = tuple(PODCAST_MAP.keys())
         print(
@@ -53,8 +53,8 @@ def main():
         return 1
 
     ensure_download_dir(args.download_dir)
-    xml_root = download_rss(site_url)
-    all_episodes = make_episodes(xml_root, filename_parser, args.download_dir)
+    xml_root = download_rss(podcast.rss)
+    all_episodes = make_episodes(xml_root, podcast, args.download_dir)
     missing_episodes = find_missing(all_episodes)
 
     if not missing_episodes:

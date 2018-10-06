@@ -1,5 +1,5 @@
 from urllib.parse import urlparse
-from .podcasts import PODCAST_MAP
+from .podcasts import Podcast, PODCAST_MAP
 
 
 class InvalidSite(Exception):
@@ -13,9 +13,9 @@ def parse_site(site: str):
     if "." in site:
         site = _parse_domain(site)
 
-    site_url, filename_parser = _get_site_data(site)
-    print(f"Specified podcast: {site}")
-    return site, site_url, filename_parser
+    podcast = _get_podcast(site)
+    print(f"Specified podcast: {podcast.name} - {podcast.title} ({podcast.url})")
+    return podcast
 
 
 def _parse_domain(domain):
@@ -25,7 +25,7 @@ def _parse_domain(domain):
         raise InvalidSite
 
 
-def _get_site_data(name):
+def _get_podcast(name) -> Podcast:
     try:
         return PODCAST_MAP[name]
     except KeyError:

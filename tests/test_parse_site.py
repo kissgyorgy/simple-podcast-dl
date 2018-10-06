@@ -2,11 +2,6 @@ from podcast_dl.site_parser import parse_site, InvalidSite
 import pytest
 
 
-def test_valid_short_sites():
-    for short_name in ("talkpython", "pythonbytes"):
-        assert parse_site(short_name) != (None, None)
-
-
 @pytest.mark.parametrize(
     "site,name",
     (
@@ -17,6 +12,7 @@ def test_valid_short_sites():
         ("https://talkpython.fm/episodes/rss", "talkpython"),
         ("https://changelog.com/podcast/", "changelog"),
         ("talkpython", "talkpython"),
+        ("pythonbytes", "pythonbytes"),
         ("talkpython.fm", "talkpython"),
         ("www.talkpython.fm", "talkpython"),
         ("https://www.podcastinit.com/feed/mp3/", "podcastinit"),
@@ -24,12 +20,12 @@ def test_valid_short_sites():
     ),
 )
 def test_parse_site(site, name):
-    assert parse_site(site)[0] == name
+    assert parse_site(site).name == name
 
 
 def test_parse_site_episode_url_still_returns_site_name():
     url = "https://www.podcastinit.com/managing-application-secrets-with-brian-kelly-episode-181/"
-    assert parse_site(url)[0] == "podcastinit"
+    assert parse_site(url).name == "podcastinit"
 
 
 def test_invalid_sites():
