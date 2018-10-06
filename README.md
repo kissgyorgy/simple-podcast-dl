@@ -21,6 +21,13 @@ so it will be synced to my phone and I can listen the episodes without internet 
 - The Changelog (https://changelog.com/podcast)
 - Podcast.\_\_init__ (https://www.podcastinit.com/)
 
+## Installation
+
+You need at least Python 3.6, then you can simply run:
+
+```bash
+$ pip3 install simple-podcast-dl
+```
 
 ## Usage
 
@@ -37,4 +44,25 @@ optional arguments:
   -h, --help            show this help message and exit
   -d DOWNLOAD_DIR, --download-dir DOWNLOAD_DIR
   -t MAX_THREADS, --max-threads MAX_THREADS
+```
+
+
+## Development
+
+The project have a `Pipfile`, so you can simply install everything needed for development with a single command:
+
+```bash
+$ pip install pipenv
+$ pipenv install --dev
+```
+
+You should format your code with black (it's included in the development requirements):
+
+```bash
+$ pipenv run black .
+```
+
+You can run the tests with:
+```bash
+$ pipenv run pytest
 ```
