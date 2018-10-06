@@ -1,10 +1,12 @@
+import sys
 from pathlib import Path
 from urllib.parse import urlparse
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 import requests
 from lxml import etree
 from .podcasts import Podcast
 from .filename_parsers import RSSItem
+from .utils import grouper
 
 
 class Episode:
@@ -59,7 +61,8 @@ def find_missing(all_episodes):
     return [printret(e) for e in all_episodes if e.is_missing]
 
 
-def download_episodes(episodes, max_threads: int):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
-        futures = [executor.submit(ep.download) for ep in episodes]
-        concurrent.futures.wait(futures)
+def download_episodes(episodes, max_threads):
+    with ThreadPoolExecutor(max_workers=max_threads) as executor:
+        for episode_group in grouper(episodes, max_threads):
+            future_group = [executor.submit(ep.download) for ep in episode_group]
+            concurrent.futures.wait(future_group)

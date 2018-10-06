@@ -2,8 +2,9 @@
 import os
 import sys
 from pathlib import Path
-import click
+from concurrent.futures import ThreadPoolExecutor
 from operator import attrgetter
+import click
 from .site_parser import parse_site, InvalidSite
 from .podcasts import PODCASTS, LONGEST_NAME, LONGEST_TITLE
 from .podcast_dl import (
@@ -101,5 +102,14 @@ def main(ctx, podcast_name, download_dir, max_threads):
         return 0
 
     print(f"Found a total of {len(missing_episodes)} missing episodes.", flush=True)
-    download_episodes(missing_episodes, max_threads)
+    try:
+        download_episodes(missing_episodes, max_threads)
+    except KeyboardInterrupt:
+        print(
+            "CTRL-C caught, finishing incomplete downloads...\n",
+            "Press one more time if you want to stop prematurely.",
+            file=sys.stderr,
+            flush=True,
+        )
+
     return 0
