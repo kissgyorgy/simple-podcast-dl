@@ -4,11 +4,11 @@ import concurrent.futures
 import requests
 from lxml import etree
 from .podcasts import Podcast
-from .filename_parsers import XMLItem
+from .filename_parsers import RSSItem
 
 
 class Episode:
-    def __init__(self, item: 'XMLItem', podcast: Podcast, download_dir: Path):
+    def __init__(self, item: RSSItem, podcast: Podcast, download_dir: Path):
         self.url = item.url
         self.filename = podcast.filename_parser(item)
         self.download_dir = download_dir
@@ -46,7 +46,7 @@ def ensure_download_dir(download_dir: Path):
 
 def make_episodes(xml_root, podcast: Podcast, download_dir: Path):
     xml_items = xml_root.xpath("//item")
-    return (Episode(item, podcast, download_dir) for item in xml_items)
+    return (Episode(RSSItem(item), podcast, download_dir) for item in xml_items)
 
 
 def find_missing(all_episodes):
