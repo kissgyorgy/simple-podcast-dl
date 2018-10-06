@@ -2,6 +2,15 @@ import pytest
 from podcast_dl import filename_parsers as fipa
 
 
+class FakeXMLItem:
+    def __init__(self, url):
+        self._url = url
+
+    @property
+    def url(self):
+        return self._url
+
+
 @pytest.mark.parametrize(
     "url, expected",
     (
@@ -25,7 +34,7 @@ from podcast_dl import filename_parsers as fipa
     ids=["ep0", "3-digits", "2-digits", "1-digit"],
 )
 def test_simple(url, expected):
-    assert fipa.simple(url) == expected
+    assert fipa.simple(FakeXMLItem(url)) == expected
 
 
 @pytest.mark.parametrize(
@@ -51,7 +60,7 @@ def test_simple(url, expected):
     ids=["1", "no-number", "with-number", "no-number"],
 )
 def test_fallback(url, expected):
-    assert fipa.fallback(url) == expected
+    assert fipa.fallback(FakeXMLItem(url)) == expected
 
 
 @pytest.mark.parametrize(
@@ -97,7 +106,7 @@ def test_fallback(url, expected):
     ],
 )
 def test_podcastinit(url, expected):
-    assert fipa.podcastinit(url) == expected
+    assert fipa.podcastinit(FakeXMLItem(url)) == expected
 
 
 @pytest.mark.parametrize(
@@ -119,4 +128,4 @@ def test_podcastinit(url, expected):
     ids=["1-digit", "2-digits", "3-digits"],
 )
 def test_changelog(url, expected):
-    assert fipa.changelog(url) == expected
+    assert fipa.changelog(FakeXMLItem(url)) == expected

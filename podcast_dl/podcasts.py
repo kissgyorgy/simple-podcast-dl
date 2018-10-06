@@ -1,7 +1,7 @@
 """
 List of podcasts and their filename parser types.
 """
-from .filename_parsers import simple, changelog, podcastinit
+from .filename_parsers import XMLItem, simple, changelog, podcastinit
 import attr
 
 
@@ -11,7 +11,7 @@ class Podcast:
     title = attr.ib(type=str)
     url = attr.ib(type=str)
     rss = attr.ib(type=str)
-    filename_parser = attr.ib(type=callable)
+    filename_parser = attr.ib(type=XMLItem)
 
 
 PODCASTS = [
