@@ -27,6 +27,7 @@ e.g. pythonbytes.fm or talkpython or https://talkpython.fm
     "-d", "--download-dir", type=Path, default="episodes", envvar="DOWNLOAD_DIR"
 )
 @click.option("-t", "--max-threads", type=int, default=10, envvar="MAX_THREADS")
+@click.version_option(None, "-V", "--version")
 @click.pass_context
 def main(ctx, podcast_name, download_dir, max_threads):
     if len(sys.argv) == 1:
