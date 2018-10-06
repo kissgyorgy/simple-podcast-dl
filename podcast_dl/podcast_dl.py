@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 import concurrent.futures
 import requests
 from lxml import etree
-from .podcasts import Podcast, PODCAST_MAP
+from .podcasts import Podcast
 
 
 class Episode:

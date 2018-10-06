@@ -14,33 +14,38 @@ class Podcast:
     filename_parser = attr.ib(type=callable)
 
 
-PODCAST_MAP = {
-    "talkpython": Podcast(
+PODCASTS = [
+    Podcast(
         name="talkpython",
         title="Talk Python To Me",
         url="https://talkpython.fm",
         rss="https://talkpython.fm/episodes/rss",
         filename_parser=simple,
     ),
-    "pythonbytes": Podcast(
+    Podcast(
         name="pythonbytes",
         title="Python Bytes",
         url="https://pythonbytes.fm/",
         rss="https://pythonbytes.fm/episodes/rss",
         filename_parser=simple,
     ),
-    "changelog": Podcast(
+    Podcast(
         name="changelog",
         title="The Changelog",
         url="https://changelog.com/podcast",
         rss="https://changelog.com/podcast/feed",
         filename_parser=changelog,
     ),
-    "podcastinit": Podcast(
+    Podcast(
         name="podcastinit",
         title="Podcast.__init__",
         url="https://www.podcastinit.com/",
         rss="https://www.podcastinit.com/feed/mp3/",
         filename_parser=podcastinit,
     ),
-}
+]
+
+PODCAST_MAP = {p.name: p for p in PODCASTS}
+
+LONGEST_NAME = max(len(p.name) for p in PODCASTS)
+LONGEST_TITLE = max(len(p.title) for p in PODCASTS)
