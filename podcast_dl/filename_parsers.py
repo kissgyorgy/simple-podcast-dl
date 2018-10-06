@@ -5,55 +5,61 @@ what type of file names the RSS contains.
 import os
 import re
 import sys
+from lxml import etree
+from slugify import slugify
 
 
-def normalize(filename):
-    # These are coming from an URL, so they are already sanitized, but there are
-    # podcasts (e.g. Podcast.__init__) which mix and match underscores and dashes
-    filename = filename.replace("_", "-")
-    return re.sub(r"-+", "-", filename)
+class RSSItem:
+    NSMAP = {"itunes": "http://www.itunes.com/dtds/podcast-1.0.dtd"}
+
+    def __init__(self, item: etree.Element):
+        enclosure = item.xpath("enclosure")[0]
+        self.url = enclosure.get("url")
+        self.title = item.xpath("title")[0].text
+        self.episode = self._parse_episode(item)
+        self.filename = self.url.split("/")[-1]
+        self.basename, self.file_ext = os.path.splitext(self.filename)
+        self.slug_filename = _slug(self.basename) + self.file_ext
+
+    def _parse_episode(self, item):
+        try:
+            episode_elem = item.xpath("itunes:episode", namespaces=self.NSMAP)[0]
+        except IndexError:
+            # XML has no <itunes:episode> element
+            return None
+
+        return int(episode_elem.text)
 
 
-def simple(url):
-    episode, filename = url.split("/")[-2:]
-    episode = int(episode)
-    return f"{episode:04}-{normalize(filename)}"
+def _slug(string):
+    # There are podcasts (e.g. Podcast.__init__) which mix and match underscores and
+    # dashes in filenames, but slugify takes care of thos also
+    return slugify(string, lowercase=False)
 
 
-def fallback(url):
-    episode, filename = url.split("/")[-2:]
-    normalized_filename = normalize(filename)
+def talkpython(item: RSSItem):
+    # Example title: "#95 Unleash the py-spy!"
+    episode, title = item.title.split(" ", 1)
+    episode = int(episode.lstrip("#"))
+    return f"{episode:04}-{_slug(title)}{item.file_ext}"
+
+
+def podcastinit(item: RSSItem):
+    return f"{item.episode:04}-{_slug(item.title)}{item.file_ext}"
+
+
+def changelog(item: RSSItem):
     try:
-        episode = int(episode)
-        return f"{episode:04}-{normalized_filename}"
+        episode, title = item.title.split(": ", 1)
     except ValueError:
         print(
-            "WARNING: Invalid episode number in filename. The episode "
-            f'"{normalized_filename}" will not have a numeric episode number prefix.',
+            "WARNING: Episode has no numeric episode number. The filename for episode "
+            f'"{item.title}" will not have a numeric episode number prefix.',
             file=sys.stderr,
             flush=True,
         )
-        return normalized_filename
-
-
-def podcastinit(url):
-    filename = url.split("/")[-1]
-    normalized_filename = normalize(filename)
-    # This should be the only episode without Episode number in the filename
-    if normalized_filename == "introductory-episode.mp3":
-        return "0000-introductory-episode.mp3"
-    cut_episode = len("Episode-")
-    no_episode = normalized_filename[cut_episode:]
-    first_dash = no_episode.find("-")
-    episode = no_episode[:first_dash]
-    episode = int(episode)
-    final_filename = no_episode[first_dash + 1 :]
-    return f"{episode:04}-{final_filename}"
-
-
-def changelog(url):
-    """Fallback and cut episode number from the end."""
-    filename = fallback(url)
-    last_dash = filename.rfind("-")
-    _, ext = os.path.splitext(filename)
-    return filename[:last_dash] + ext
+        # The split failed, no episode number in the title
+        return f"{_slug(item.title)}{item.file_ext}"
+    else:
+        episode = int(episode)
+    return f"{episode:04}-{_slug(title)}{item.file_ext}"

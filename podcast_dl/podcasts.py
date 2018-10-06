@@ -1,7 +1,7 @@
 """
 List of podcasts and their filename parser types.
 """
-from .filename_parsers import simple, changelog, podcastinit
+from .filename_parsers import RSSItem, talkpython, changelog, podcastinit
 import attr
 
 
@@ -11,7 +11,7 @@ class Podcast:
     title = attr.ib(type=str)
     url = attr.ib(type=str)
     rss = attr.ib(type=str)
-    filename_parser = attr.ib(type=callable)
+    filename_parser = attr.ib(type=RSSItem)
 
 
 PODCASTS = [
@@ -20,14 +20,14 @@ PODCASTS = [
         title="Talk Python To Me",
         url="https://talkpython.fm",
         rss="https://talkpython.fm/episodes/rss",
-        filename_parser=simple,
+        filename_parser=talkpython,
     ),
     Podcast(
         name="pythonbytes",
         title="Python Bytes",
         url="https://pythonbytes.fm/",
         rss="https://pythonbytes.fm/episodes/rss",
-        filename_parser=simple,
+        filename_parser=talkpython,
     ),
     Podcast(
         name="changelog",
