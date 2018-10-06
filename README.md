@@ -21,13 +21,33 @@ so it will be synced to my phone and I can listen the episodes without internet 
 - The Changelog (https://changelog.com/podcast)
 - Podcast.\_\_init__ (https://www.podcastinit.com/)
 
+
 ## Installation
 
 You need at least Python 3.6, then you can simply run:
-
 ```bash
 $ pip3 install simple-podcast-dl
 ```
+
+
+## Getting started
+
+It is as simple as running the command:
+```bash
+$ podcast-dl talkpython.fm
+```
+
+And the podcast will be downloaded to the "talkpython.fm" directory.
+You can change the download directory by specifying the `-d` option:
+```bash
+$ podcast-dl talkpython.fm -d talkpython-podcast
+```
+
+You can list the supported podcast sites with the `--list-podcasts` option:
+```bash
+$ podcast-dl --list-podcasts
+```
+
 
 ## Usage
 
