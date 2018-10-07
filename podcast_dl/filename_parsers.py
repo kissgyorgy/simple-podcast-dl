@@ -27,7 +27,7 @@ class RSSItem:
             # XML has no <itunes:episode> element
             return None
 
-        return int(episode_elem.text)
+        return episode_elem.text
 
 
 def _slug(string):
@@ -44,7 +44,8 @@ def talkpython(item: RSSItem):
 
 
 def podcastinit(item: RSSItem):
-    return f"{item.episode:04}-{_slug(item.title)}{item.file_ext}"
+    episode = int(item.episode)
+    return f"{episode:04}-{_slug(item.title)}{item.file_ext}"
 
 
 def changelog(item: RSSItem):
