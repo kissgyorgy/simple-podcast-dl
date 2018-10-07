@@ -14,12 +14,11 @@ class RSSItem:
 
     def __init__(self, item: etree.Element):
         enclosure = item.xpath("enclosure")[0]
-        self.url = enclosure.get("url")
+        url = enclosure.get("url")
         self.title = item.xpath("title")[0].text
         self.episode = self._parse_episode(item)
-        self.filename = self.url.split("/")[-1]
-        self.basename, self.file_ext = os.path.splitext(self.filename)
-        self.slug_filename = _slug(self.basename) + self.file_ext
+        filename = url.split("/")[-1]
+        _, self.file_ext = os.path.splitext(filename)
 
     def _parse_episode(self, item):
         try:
@@ -33,7 +32,7 @@ class RSSItem:
 
 def _slug(string):
     # There are podcasts (e.g. Podcast.__init__) which mix and match underscores and
-    # dashes in filenames, but slugify takes care of thos also
+    # dashes in filenames, but slugify takes care of those also
     return slugify(string, lowercase=False)
 
 

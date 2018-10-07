@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
 import requests
 from lxml import etree
 from .podcasts import Podcast
@@ -65,4 +65,4 @@ def download_episodes(episodes, max_threads):
     with ThreadPoolExecutor(max_workers=max_threads) as executor:
         for episode_group in grouper(episodes, max_threads):
             future_group = [executor.submit(ep.download) for ep in episode_group]
-            concurrent.futures.wait(future_group)
+            wait(future_group)
