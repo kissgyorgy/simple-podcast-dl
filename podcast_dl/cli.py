@@ -8,9 +8,10 @@ import click
 from .site_parser import parse_site, InvalidSite
 from .podcasts import PODCASTS, LONGEST_NAME, LONGEST_TITLE
 from .podcast_dl import (
+    Episode,
     ensure_download_dir,
     download_rss,
-    make_episodes,
+    get_rss_items,
     find_missing,
     download_episodes,
 )
@@ -107,9 +108,10 @@ def main(ctx, podcast_name, download_dir, max_threads, episode_numbers):
         return 1
 
     ensure_download_dir(download_dir)
-    xml_root = download_rss(podcast.rss)
-    all_episodes = make_episodes(xml_root, podcast, download_dir)
-    missing_episodes = find_missing(all_episodes)
+    rss_root = download_rss(podcast.rss)
+    rss_items = get_rss_items(rss_root, episode_numbers)
+    episodes = (Episode(item, podcast, download_dir) for item in rss_items)
+    missing_episodes = find_missing(episodes)
 
     if not missing_episodes:
         print("Every episode is downloaded.", flush=True)
