@@ -23,6 +23,13 @@ e.g. pythonbytes.fm or talkpython or https://talkpython.fm
 """
 
 
+class EpisodeList(click.ParamType):
+    name = "episodelist"
+
+    def convert(self, value, param, ctx):
+        return sorted([e.zfill(4) for e in value.split(",")])
+
+
 def list_podcasts(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
@@ -75,9 +82,16 @@ def podcast_name_argument():
     expose_value=False,
     callback=list_podcasts,
 )
+@click.option(
+    "-e",
+    "--episodes",
+    "episode_numbers",
+    help="Episodes to download.",
+    type=EpisodeList(),
+)
 @click.version_option(None, "-V", "--version")
 @click.pass_context
-def main(ctx, podcast_name, download_dir, max_threads):
+def main(ctx, podcast_name, download_dir, max_threads, episode_numbers):
     if len(sys.argv) == 1:
         help_text = ctx.command.get_help(ctx)
         click.echo(help_text)
