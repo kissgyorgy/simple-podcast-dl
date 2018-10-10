@@ -46,6 +46,8 @@ def test_not_numeric_or_unknown():
 
     assert convert("Some Title") == (["SOME TITLE"], 0)
     assert convert("1,") == (["0001"], 0)
+    assert convert("3,10bla") == (["0003", "10BLA"], 0)
+    assert convert("2-10bla") == (["2-10BLA"], 0)
 
 
 def mixed_values():

@@ -33,7 +33,7 @@ class EpisodeList(click.ParamType):
     def convert(self, value, param=None, ctx=None) -> Tuple[List[str], int]:
         biggest_last_n = 0
         episodes = set()
-        episode_range_re = re.compile(r"([0-9]{1,4})-([0-9]{1,4})")
+        episode_range_re = re.compile(r"^([0-9]{1,4})-([0-9]{1,4})$")
 
         for spec in value.upper().split(","):
             if spec.isnumeric():
