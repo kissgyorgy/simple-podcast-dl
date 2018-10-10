@@ -62,6 +62,17 @@ of episodes to download:
 $ podcast-dl --episodes last:3 talkpython
 ```
 
+You can list the podcast episodes sorted by episode number with
+`--show-episodes` or (`-s`):
+```bash
+$ podcast-dl --show-episodes talkpython
+```
+
+Or you can even combine it with selecting episodes:
+```bash
+$ podcast-dl --show-episodes -e 1-5 talkpython
+```
+
 
 ## Usage
 

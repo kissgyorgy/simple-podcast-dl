@@ -116,6 +116,9 @@ def podcast_name_argument():
     callback=list_podcasts,
 )
 @click.option(
+    "-s", "--show-episodes", help="Show the list of episodes for PODCAST.", is_flag=True
+)
+@click.option(
     "-e",
     "--episodes",
     "episode_numbers",
@@ -124,7 +127,7 @@ def podcast_name_argument():
 )
 @click.version_option(None, "-V", "--version")
 @click.pass_context
-def main(ctx, podcast_name, download_dir, max_threads, episode_numbers):
+def main(ctx, podcast_name, download_dir, max_threads, episode_numbers, show_episodes):
     if len(sys.argv) == 1:
         help_text = ctx.command.get_help(ctx)
         click.echo(help_text)
@@ -145,6 +148,12 @@ def main(ctx, podcast_name, download_dir, max_threads, episode_numbers):
 
     if episode_numbers is not None:
         rss_items = filter_rss_items(rss_items, episode_numbers)
+
+    if show_episodes:
+        print(f"List of episodes:", flush=True)
+        for item in rss_items:
+            print(item.episode or " N/A", "-", item.title)
+        return 0
 
     episodes = (Episode(item, podcast, download_dir) for item in rss_items)
     missing_episodes = find_missing(episodes)
