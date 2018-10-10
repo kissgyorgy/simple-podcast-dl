@@ -5,14 +5,14 @@ from concurrent.futures import ThreadPoolExecutor, wait
 import requests
 from lxml import etree
 from .podcasts import Podcast
-from .filename_parsers import RSSItem
+from .rss_parsers import BaseItem
 from .utils import grouper
 
 
 class Episode:
-    def __init__(self, item: RSSItem, podcast: Podcast, download_dir: Path):
+    def __init__(self, item: BaseItem, podcast: Podcast, download_dir: Path):
         self.url = item.url
-        self.filename = podcast.filename_parser(item)
+        self.filename = item.filename
         self.download_dir = download_dir
         self.full_path = self.download_dir / self.filename
 
@@ -46,19 +46,23 @@ def ensure_download_dir(download_dir: Path):
     download_dir.mkdir(parents=True, exist_ok=True)
 
 
-def make_episodes(xml_root, podcast: Podcast, download_dir: Path):
-    xml_items = xml_root.xpath("//item")
-    return (Episode(RSSItem(item), podcast, download_dir) for item in xml_items)
+def get_rss_items(rss_root: etree.Element, rss_parser, episode_numbers=None):
+    all_rss_items = (rss_parser(item) for item in rss_root.xpath("//item"))
+    if episode_numbers is None:
+        return all_rss_items
+    else:
+        print("Searching episodes:", ", ".join(episode_numbers))
+        return (item for item in all_rss_items if item.episode in episode_numbers)
 
 
-def find_missing(all_episodes):
+def find_missing(episodes):
     print("Searching missing episodes...", flush=True)
 
     def printret(episode):
         print("Found missing episode:", episode.filename, flush=True)
         return episode
 
-    return [printret(e) for e in all_episodes if e.is_missing]
+    return [printret(e) for e in episodes if e.is_missing]
 
 
 def download_episodes(episodes, max_threads):
