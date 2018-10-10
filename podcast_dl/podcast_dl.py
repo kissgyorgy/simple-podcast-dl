@@ -26,7 +26,7 @@ class Episode:
         print(f"Getting episode: {self.url}", flush=True)
         with requests.get(self.url, stream=True) as response:
             self._save_atomic(response)
-        print(f"Finished downloading: {self.full_path}")
+        print(f"Finished downloading: {self.filename}")
 
     def _save_atomic(self, response):
         partial_filename = self.full_path.with_suffix(".partial")
@@ -61,7 +61,9 @@ def filter_rss_items(
 
     search_message = "Searching episodes: " + ", ".join(episode_strs)
     if last_n != 0:
-        search_message += f"and last {last_n} episodes."
+        if episode_strs:
+            search_message += " and/or "
+        search_message += f"last {last_n}."
     print(search_message, flush=True)
 
     # We can't make this function a generator, need to return a list, so

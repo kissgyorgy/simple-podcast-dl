@@ -92,7 +92,7 @@ def podcast_name_argument():
         "Where to save downloaded episodes. Can be specified by the "
         "DOWNLOAD_DIR environment variable."
     ),
-    show_default="specified PODCAST",
+    show_default="name of PODCAST",
 )
 @click.option(
     "-t",

@@ -53,13 +53,13 @@ $ podcast-dl --list-podcasts
 You can specify which episodes to download with the `--episodes`
 (or `-e`) option:
 ```bash
-$ podcast-dl --episodes 1,2,3
+$ podcast-dl --episodes 1,2,3 talkpython
 ```
 
 You can use the "last" or "last:n" keyword to select the last or last n number
 of episodes to download:
 ```bash
-$ podcast-dl --episodes last:3
+$ podcast-dl --episodes last:3 talkpython
 ```
 
 
