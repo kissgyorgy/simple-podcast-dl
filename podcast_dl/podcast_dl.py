@@ -5,14 +5,14 @@ from concurrent.futures import ThreadPoolExecutor, wait
 import requests
 from lxml import etree
 from .podcasts import Podcast
-from .filename_parsers import RSSItem
+from .rss_parsers import BaseItem
 from .utils import grouper
 
 
 class Episode:
-    def __init__(self, item: RSSItem, podcast: Podcast, download_dir: Path):
+    def __init__(self, item: BaseItem, podcast: Podcast, download_dir: Path):
         self.url = item.url
-        self.filename = podcast.filename_parser(item)
+        self.filename = item.filename
         self.download_dir = download_dir
         self.full_path = self.download_dir / self.filename
 
@@ -46,8 +46,8 @@ def ensure_download_dir(download_dir: Path):
     download_dir.mkdir(parents=True, exist_ok=True)
 
 
-def get_rss_items(rss_root: etree.Element, episode_numbers=None):
-    all_rss_items = (RSSItem(item) for item in rss_root.xpath("//item"))
+def get_rss_items(rss_root: etree.Element, rss_parser, episode_numbers=None):
+    all_rss_items = (rss_parser(item) for item in rss_root.xpath("//item"))
     if episode_numbers is None:
         return all_rss_items
     else:

@@ -109,7 +109,7 @@ def main(ctx, podcast_name, download_dir, max_threads, episode_numbers):
 
     ensure_download_dir(download_dir)
     rss_root = download_rss(podcast.rss)
-    rss_items = get_rss_items(rss_root, episode_numbers)
+    rss_items = get_rss_items(rss_root, podcast.rss_parser, episode_numbers)
     episodes = (Episode(item, podcast, download_dir) for item in rss_items)
     missing_episodes = find_missing(episodes)
 

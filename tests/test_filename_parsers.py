@@ -1,19 +1,19 @@
 import pytest
 from lxml.builder import ElementMaker
-from podcast_dl import filename_parsers as fipa
+from podcast_dl import rss_parsers as rspa
 
 
 # fmt: off
 def _make_item(url, title, episode=None):
     episode_ns = "http://www.itunes.com/dtds/podcast-1.0.dtd"
     E = ElementMaker(nsmap={"itunes": episode_ns})
-    rss = E.item(
+    item = E.item(
         E.enclosure(url=url, length="1234", type="audio/mpeg"),
         E.title(title)
     )
     if episode is not None:
-        rss.append(E("{" + episode_ns + "}episode", str(episode)))
-    return fipa.RSSItem(rss)
+        item.append(E("{" + episode_ns + "}episode", str(episode)))
+    return item
 
 # fmt: on
 
@@ -46,7 +46,7 @@ def _make_item(url, title, episode=None):
 )
 def test_talkpython(url, title, expected_filename):
     item = _make_item(url, title)
-    assert fipa.talkpython(item) == expected_filename
+    assert rspa.TalkPythonItem(item).filename == expected_filename
 
 
 @pytest.mark.parametrize(
@@ -114,7 +114,7 @@ def test_talkpython(url, title, expected_filename):
 )
 def test_podcastinit(url, title, episode, expected_filename):
     item = _make_item(url, title, episode)
-    assert fipa.podcastinit(item) == expected_filename
+    assert rspa.BaseItem(item).filename == expected_filename
 
 
 @pytest.mark.parametrize(
@@ -150,4 +150,4 @@ def test_podcastinit(url, title, episode, expected_filename):
 )
 def test_changelog(url, title, expected_filename):
     item = _make_item(url, title)
-    assert fipa.changelog(item) == expected_filename
+    assert rspa.ChangelogItem(item).filename == expected_filename
