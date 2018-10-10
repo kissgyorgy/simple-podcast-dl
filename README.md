@@ -37,15 +37,29 @@ It is as simple as running the command:
 $ podcast-dl talkpython.fm
 ```
 
-And the podcast will be downloaded to the "talkpython.fm" directory.
-You can change the download directory by specifying the `-d` option:
+And the podcast will be downloaded to the "talkpython.fm" directory.  
+You can change the download directory by specifying the `--directory`
+(or `-d`) option:
 ```bash
 $ podcast-dl talkpython.fm -d talkpython-podcast
 ```
 
-You can list the supported podcast sites with the `--list-podcasts` option:
+You can list the supported podcast sites with the `--list-podcasts`
+(or `-l`) option:
 ```bash
 $ podcast-dl --list-podcasts
+```
+
+You can specify which episodes to download with the `--episodes`
+(or `-e`) option:
+```bash
+$ podcast-dl --episodes 1,2,3
+```
+
+You can use the "last" or "last:n" keyword to select the last or last n number
+of episodes to download:
+```bash
+$ podcast-dl --episodes last:3
 ```
 
 

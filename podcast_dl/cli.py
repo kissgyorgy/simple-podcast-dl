@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import os
+import re
 import sys
 from pathlib import Path
+from typing import List, Tuple
 from concurrent.futures import ThreadPoolExecutor
 from operator import attrgetter
 import click
@@ -11,7 +13,8 @@ from .podcast_dl import (
     Episode,
     ensure_download_dir,
     download_rss,
-    get_rss_items,
+    get_all_rss_items,
+    filter_rss_items,
     find_missing,
     download_episodes,
 )
@@ -27,8 +30,37 @@ e.g. pythonbytes.fm or talkpython or https://talkpython.fm
 class EpisodeList(click.ParamType):
     name = "episodelist"
 
-    def convert(self, value, param, ctx):
-        return sorted([e.zfill(4) for e in value.split(",")])
+    def convert(self, value, param=None, ctx=None) -> Tuple[List[str], int]:
+        biggest_last_n = 0
+        episodes = set()
+        episode_range_re = re.compile(r"([0-9]{1,4})-([0-9]{1,4})")
+
+        for spec in value.upper().split(","):
+            if spec.isnumeric():
+                episodes.add(spec.zfill(4))
+                continue
+
+            if spec == "LAST":
+                biggest_last_n = max(biggest_last_n, 1)
+                continue
+
+            if spec.startswith("LAST:"):
+                # will be added at the end once, when we know the biggest n value
+                n = int(spec.split(":")[1])
+                biggest_last_n = max(biggest_last_n, n)
+                continue
+
+            m = episode_range_re.match(spec)
+            if m:
+                first, last = m.group(1, 2)
+                start, end = int(first), int(last) + 1
+                episodes |= set(f"{e:04}" for e in range(start, end))
+                continue
+
+            if spec:
+                episodes.add(spec)
+
+        return sorted(episodes), biggest_last_n
 
 
 def list_podcasts(ctx, param, value):
@@ -109,7 +141,11 @@ def main(ctx, podcast_name, download_dir, max_threads, episode_numbers):
 
     ensure_download_dir(download_dir)
     rss_root = download_rss(podcast.rss)
-    rss_items = get_rss_items(rss_root, podcast.rss_parser, episode_numbers)
+    rss_items = get_all_rss_items(rss_root, podcast.rss_parser)
+
+    if episode_numbers is not None:
+        rss_items = filter_rss_items(rss_items, episode_numbers)
+
     episodes = (Episode(item, podcast, download_dir) for item in rss_items)
     missing_episodes = find_missing(episodes)
 

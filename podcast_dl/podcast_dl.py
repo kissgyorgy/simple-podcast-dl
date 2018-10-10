@@ -1,6 +1,8 @@
 import sys
+from typing import List, Tuple
 from pathlib import Path
 from urllib.parse import urlparse
+from operator import attrgetter
 from concurrent.futures import ThreadPoolExecutor, wait
 import requests
 from lxml import etree
@@ -46,13 +48,36 @@ def ensure_download_dir(download_dir: Path):
     download_dir.mkdir(parents=True, exist_ok=True)
 
 
-def get_rss_items(rss_root: etree.Element, rss_parser, episode_numbers=None):
-    all_rss_items = (rss_parser(item) for item in rss_root.xpath("//item"))
-    if episode_numbers is None:
-        return all_rss_items
-    else:
-        print("Searching episodes:", ", ".join(episode_numbers))
-        return (item for item in all_rss_items if item.episode in episode_numbers)
+def get_all_rss_items(rss_root: etree.Element, rss_parser: BaseItem):
+    all_items = (rss_parser(item) for item in rss_root.xpath("//item"))
+    return sorted(all_items, key=attrgetter("episode"))
+
+
+def filter_rss_items(
+    all_rss_items: List[BaseItem], episode_numbers: Tuple[List[str], int]
+):
+    episode_strs, last_n = episode_numbers
+    last_index = len(all_rss_items) - last_n
+
+    search_message = "Searching episodes: " + ", ".join(episode_strs)
+    if last_n != 0:
+        search_message += f"and last {last_n} episodes."
+    print(search_message, flush=True)
+
+    # We can't make this function a generator, need to return a list, so
+    # the above output would print before we return from this function
+    rv = []
+
+    for n, item in enumerate(all_rss_items):
+        if (
+            (item.episode in episode_strs)
+            or (item.filename.upper() in episode_strs)
+            or (item.title.upper() in episode_strs)
+            or (last_index <= n)
+        ):
+            rv.append(item)
+
+    return rv
 
 
 def find_missing(episodes):
