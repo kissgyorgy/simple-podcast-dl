@@ -50,7 +50,7 @@ def ensure_download_dir(download_dir: Path):
 
 def get_all_rss_items(rss_root: etree.Element, rss_parser: BaseItem):
     all_items = (rss_parser(item) for item in rss_root.xpath("//item"))
-    return sorted(all_items, key=attrgetter("episode"))
+    return sorted(all_items, key=attrgetter("filename"))
 
 
 def filter_rss_items(
