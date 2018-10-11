@@ -133,12 +133,18 @@ def main(ctx, podcast_name, download_dir, max_threads, episode_numbers, show_epi
         click.echo(help_text)
         return 0
 
+    # We have to handle this because it's not required,
+    # to be able to show help when run without arguments
+    if podcast_name is None:
+        raise click.UsageError('Missing argument "PODCAST".', ctx=ctx)
+
     try:
         podcast = parse_site(podcast_name)
     except InvalidSite:
-        print(
+        raise click.BadArgumentUsage(
             f'The given podcast "{podcast_name}" is not supported or invalid.\n'
-            f'See the list of supported podcasts with "{ctx.info_name} --list-podcasts"'
+            f'See the list of supported podcasts with "{ctx.info_name} --list-podcasts"',
+            ctx=ctx,
         )
         return 1
 
