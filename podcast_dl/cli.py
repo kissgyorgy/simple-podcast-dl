@@ -75,18 +75,13 @@ def list_podcasts(ctx, param, value):
     ctx.exit()
 
 
-def podcast_name_argument():
-    ctx = click.get_current_context()
-    return ctx.params["podcast_name"]
-
-
 @click.command(help=HELP, context_settings={"help_option_names": ["--help", "-h"]})
 @click.argument("podcast_name", metavar="PODCAST", required=False)
 @click.option(
     "-d",
     "--download-dir",
     type=Path,
-    default=podcast_name_argument,
+    default=None,
     envvar="DOWNLOAD_DIR",
     help=(
         "Where to save downloaded episodes. Can be specified by the "
@@ -147,6 +142,9 @@ def main(ctx, podcast_name, download_dir, max_threads, episode_numbers, show_epi
             ctx=ctx,
         )
         return 1
+
+    if download_dir is None:
+        download_dir = Path(podcast.name)
 
     ensure_download_dir(download_dir)
     rss_root = download_rss(podcast.rss)
