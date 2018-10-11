@@ -14,6 +14,8 @@ from .utils import grouper
 class Episode:
     def __init__(self, item: BaseItem, podcast: Podcast, download_dir: Path):
         self.url = item.url
+        self.number = item.episode
+        self.title = item.title
         self.filename = item.filename
         self.download_dir = download_dir
         self.full_path = self.download_dir / self.filename
@@ -84,12 +86,24 @@ def filter_rss_items(
 
 def find_missing(episodes):
     print("Searching missing episodes...", flush=True)
+    rv = []
 
-    def printret(episode):
-        print("Found missing episode:", episode.filename, flush=True)
-        return episode
+    for ep in episodes:
+        if not ep.is_missing:
+            continue
 
-    return [printret(e) for e in episodes if e.is_missing]
+        print("Found missing episode:", ep.filename, flush=True)
+        if ep.number is None:
+            print(
+                "WARNING: Episode has no numeric episode number. The filename for"
+                f'episode "{ep.title}" will not have a numeric episode prefix.',
+                file=sys.stderr,
+                flush=True,
+            )
+
+        rv.append(ep)
+
+    return rv
 
 
 def download_episodes(episodes, max_threads):

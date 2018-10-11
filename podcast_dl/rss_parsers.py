@@ -47,13 +47,6 @@ class BaseItem:
     def filename(self):
         if self.episode is not None:
             return f"{self.episode}-{_slug(self.title)}{self.file_ext}"
-
-        print(
-            "WARNING: Episode has no numeric episode number. The filename for"
-            f'episode "{self.title}" will not have a numeric episode prefix.',
-            file=sys.stderr,
-            flush=True,
-        )
         return f"{_slug(self.title)}{self.file_ext}"
 
 
