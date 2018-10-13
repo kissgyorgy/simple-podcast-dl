@@ -116,13 +116,13 @@ def list_podcasts(ctx, param, value):
 @click.option(
     "-e",
     "--episodes",
-    "episode_numbers",
+    "episodes_param",
     help="Episodes to download.",
     type=EpisodeList(),
 )
 @click.version_option(None, "-V", "--version")
 @click.pass_context
-def main(ctx, podcast_name, download_dir, max_threads, episode_numbers, show_episodes):
+def main(ctx, podcast_name, download_dir, max_threads, episodes_param, show_episodes):
     if len(sys.argv) == 1:
         help_text = ctx.command.get_help(ctx)
         click.echo(help_text)
@@ -148,10 +148,22 @@ def main(ctx, podcast_name, download_dir, max_threads, episode_numbers, show_epi
 
     ensure_download_dir(download_dir)
     rss_root = download_rss(podcast.rss)
-    rss_items = get_all_rss_items(rss_root, podcast.rss_parser)
+    all_rss_items = get_all_rss_items(rss_root, podcast.rss_parser)
 
-    if episode_numbers is not None:
-        rss_items = filter_rss_items(rss_items, episode_numbers)
+    if episodes_param is not None:
+        episode_numbers, last_n = episodes_param
+        rss_items, unknown_episodes = filter_rss_items(
+            all_rss_items, episode_numbers, last_n
+        )
+        if unknown_episodes:
+            print(
+                "WARNING: Unknown episode numbers:",
+                ",".join(unknown_episodes),
+                file=sys.stderr,
+                flush=True,
+            )
+    else:
+        rss_items = all_rss_items
 
     if show_episodes:
         print(f"List of episodes:", flush=True)

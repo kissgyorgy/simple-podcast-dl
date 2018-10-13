@@ -55,33 +55,37 @@ def get_all_rss_items(rss_root: etree.Element, rss_parser: BaseItem):
     return sorted(all_items, key=attrgetter("filename"))
 
 
-def filter_rss_items(
-    all_rss_items: List[BaseItem], episode_numbers: Tuple[List[str], int]
-):
-    episode_strs, last_n = episode_numbers
+def filter_rss_items(all_rss_items, episode_numbers, last_n):
+    episode_numbers_left = set(episode_numbers)
     last_index = len(all_rss_items) - last_n
 
-    search_message = "Searching episodes: " + ", ".join(episode_strs)
+    search_message = "Searching episodes: " + ", ".join(episode_numbers)
     if last_n != 0:
-        if episode_strs:
-            search_message += " and/or "
+        search_message += " and/or " if episode_numbers else ""
         search_message += f"last {last_n}."
     print(search_message, flush=True)
 
     # We can't make this function a generator, need to return a list, so
     # the above output would print before we return from this function
-    rv = []
+    filtered_items = []
 
     for n, item in enumerate(all_rss_items):
-        if (
-            (item.episode in episode_strs)
-            or (item.filename.upper() in episode_strs)
-            or (item.title.upper() in episode_strs)
-            or (last_index <= n)
-        ):
-            rv.append(item)
+        if item.episode in episode_numbers_left:
+            episode_numbers_left.remove(item.episode)
+            filtered_items.append(item)
 
-    return rv
+        elif item.filename.upper() in episode_numbers_left:
+            episode_numbers_left.remove(item.filename.upper())
+            filtered_items.append(item)
+
+        elif item.title.upper() in episode_numbers_left:
+            episode_numbers_left.remove(item.title.upper())
+            filtered_items.append(item)
+
+        elif last_index <= n:
+            filtered_items.append(item)
+
+    return filtered_items, episode_numbers_left
 
 
 def find_missing(episodes):
@@ -95,7 +99,7 @@ def find_missing(episodes):
         print("Found missing episode:", ep.filename, flush=True)
         if ep.number is None:
             print(
-                "WARNING: Episode has no numeric episode number. The filename for"
+                "WARNING: Episode has no numeric episode number. The filename for "
                 f'episode "{ep.title}" will not have a numeric episode prefix.',
                 file=sys.stderr,
                 flush=True,
