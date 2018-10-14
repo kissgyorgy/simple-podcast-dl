@@ -1,4 +1,5 @@
 from urllib.parse import urlparse
+import click
 from .podcasts import Podcast, PODCAST_MAP
 
 
@@ -14,7 +15,7 @@ def parse_site(site: str):
         site = _parse_domain(site)
 
     podcast = _get_podcast(site)
-    print(f"Specified podcast: {podcast.name} - {podcast.title} ({podcast.url})")
+    click.echo(f"Specified podcast: {podcast.name} - {podcast.title} ({podcast.url})")
     return podcast
 
 

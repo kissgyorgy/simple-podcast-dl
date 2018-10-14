@@ -186,37 +186,37 @@ def main(ctx, podcast_name, download_dir, max_threads, episodes_param, show_epis
             all_rss_items, episode_params, last_n
         )
         if unknown_episodes:
-            print(
-                "WARNING: Unknown episode numbers:",
-                ", ".join(str(e) for e in unknown_episodes),
-                file=sys.stderr,
-                flush=True,
+            click.secho(
+                "WARNING: Unknown episode numbers:"
+                + ", ".join(str(e) for e in unknown_episodes),
+                fg="yellow",
+                err=True,
             )
     else:
         rss_items = all_rss_items
 
     if show_episodes:
-        print(f"List of episodes:", flush=True)
+        click.echo("List of episodes:")
         for item in rss_items:
-            print(item.episode or " N/A", "-", item.title)
+            click.echo(item.episode or f" N/A - {item.title}")
         return 0
 
     episodes = (Episode(item, podcast, download_dir) for item in rss_items)
     missing_episodes = find_missing(episodes)
 
     if not missing_episodes:
-        print("Every episode is downloaded.", flush=True)
+        click.secho("Every episode is downloaded.", fg="green")
         return 0
 
-    print(f"Found a total of {len(missing_episodes)} missing episodes.", flush=True)
+    click.echo(f"Found a total of {len(missing_episodes)} missing episodes.")
     try:
         download_episodes(missing_episodes, max_threads)
     except KeyboardInterrupt:
-        print(
-            "CTRL-C caught, finishing incomplete downloads...\n",
+        click.secho(
+            "CTRL-C caught, finishing incomplete downloads...\n"
             "Press one more time if you want to stop prematurely.",
-            file=sys.stderr,
-            flush=True,
+            fg="yellow",
+            err=True,
         )
 
     return 0

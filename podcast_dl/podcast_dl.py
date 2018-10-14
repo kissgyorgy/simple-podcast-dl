@@ -4,6 +4,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from operator import attrgetter
 from concurrent.futures import ThreadPoolExecutor, wait
+import click
 import requests
 from lxml import etree
 from .podcasts import Podcast
@@ -25,28 +26,28 @@ class Episode:
         return not self.full_path.exists()
 
     def download(self):
-        print(f"Getting episode: {self.url}", flush=True)
+        click.echo(f"Getting episode: {self.url}")
         with requests.get(self.url, stream=True) as response:
             self._save_atomic(response)
-        print(f"Finished downloading: {self.filename}")
+        click.secho(f"Finished downloading: {self.filename}", fg="green")
 
     def _save_atomic(self, response):
         partial_filename = self.full_path.with_suffix(".partial")
         with partial_filename.open("wb") as fp:
-            print(f"Writing file: {self.filename}.partial", flush=True)
+            click.echo(f"Writing file: {self.filename}.partial")
             for chunk in response.iter_content(chunk_size=None):
                 fp.write(chunk)
         partial_filename.rename(self.full_path)
 
 
 def download_rss(rss_url: str):
-    print(f"Downloading RSS feed: {rss_url} ...", flush=True)
+    click.echo(f"Downloading RSS feed: {rss_url} ...")
     res = requests.get(rss_url)
     return etree.XML(res.content)
 
 
 def ensure_download_dir(download_dir: Path):
-    print("Download directory:", download_dir.resolve(), flush=True)
+    click.echo(f"Download directory: {download_dir.resolve()}")
     download_dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -60,7 +61,7 @@ def filter_rss_items(all_rss_items, episode_params, last_n):
     if last_n != 0:
         search_message += " and/or " if episode_params else ""
         search_message += f"last {last_n}."
-    print(search_message, flush=True)
+    click.echo(search_message)
 
     # We can't make this function a generator, need to return a list, so
     # the above output would print before we return from this function
@@ -88,20 +89,20 @@ def filter_rss_items(all_rss_items, episode_params, last_n):
 
 
 def find_missing(episodes):
-    print("Searching missing episodes...", flush=True)
+    click.echo("Searching missing episodes...")
     rv = []
 
     for ep in episodes:
         if not ep.is_missing:
             continue
 
-        print("Found missing episode:", ep.filename, flush=True)
+        click.echo(f"Found missing episode: {ep.filename}")
         if ep.number is None:
-            print(
+            click.secho(
                 "WARNING: Episode has no numeric episode number. The filename for "
                 f'episode "{ep.title}" will not have a numeric episode prefix.',
-                file=sys.stderr,
-                flush=True,
+                fg="yellow",
+                err=True,
             )
 
         rv.append(ep)
