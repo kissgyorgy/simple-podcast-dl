@@ -55,37 +55,36 @@ def get_all_rss_items(rss_root: etree.Element, rss_parser: BaseItem):
     return sorted(all_items, key=attrgetter("filename"))
 
 
-def filter_rss_items(all_rss_items, episode_numbers, last_n):
-    episode_numbers_left = set(episode_numbers)
-    last_index = len(all_rss_items) - last_n
-
-    search_message = "Searching episodes: " + ", ".join(episode_numbers)
+def filter_rss_items(all_rss_items, episode_params, last_n):
+    search_message = "Searching episodes: " + ", ".join(str(e) for e in episode_params)
     if last_n != 0:
-        search_message += " and/or " if episode_numbers else ""
+        search_message += " and/or " if episode_params else ""
         search_message += f"last {last_n}."
     print(search_message, flush=True)
 
     # We can't make this function a generator, need to return a list, so
     # the above output would print before we return from this function
     filtered_items = []
+    episode_params_left = set(episode_params)
+    last_index = len(all_rss_items) - last_n
 
     for n, item in enumerate(all_rss_items):
-        if item.episode in episode_numbers_left:
-            episode_numbers_left.remove(item.episode)
+        if item.episode in episode_params_left:
+            episode_params_left.remove(item.episode)
             filtered_items.append(item)
 
-        elif item.filename.upper() in episode_numbers_left:
-            episode_numbers_left.remove(item.filename.upper())
+        elif item.filename in episode_params_left:
+            episode_params_left.remove(item.filename)
             filtered_items.append(item)
 
-        elif item.title.upper() in episode_numbers_left:
-            episode_numbers_left.remove(item.title.upper())
+        elif item.title in episode_params_left:
+            episode_params_left.remove(item.title)
             filtered_items.append(item)
 
         elif last_index <= n:
             filtered_items.append(item)
 
-    return filtered_items, episode_numbers_left
+    return filtered_items, sorted(episode_params_left)
 
 
 def find_missing(episodes):

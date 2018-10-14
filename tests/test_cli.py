@@ -56,3 +56,13 @@ def mixed_values():
         1,
     )
     assert convert("0,12-14,last:5") == (["0000", "0012", "0013", "0014"], 5)
+
+
+def test_EpisodeParam_ordering():
+    assert cli.EpisodeParam("0005") < cli.EpisodeParam("0010")
+    assert cli.EpisodeParam("0005") < cli.EpisodeParam("unknown")
+
+
+def test_EpisodeParam_equality_with_strings():
+    assert cli.EpisodeParam("0005") == "0005"
+    assert cli.EpisodeParam("unknown") == "unknown"

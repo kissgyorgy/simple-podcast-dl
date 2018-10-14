@@ -2,6 +2,7 @@
 import os
 import re
 import sys
+import functools
 from pathlib import Path
 from typing import List, Tuple
 from concurrent.futures import ThreadPoolExecutor
@@ -27,17 +28,46 @@ e.g. pythonbytes.fm or talkpython or https://talkpython.fm
 """
 
 
+@functools.total_ordering
+class EpisodeParam:
+    def __init__(self, original: str):
+        self.original = original
+        self._spec = original.upper()
+
+    def __hash__(self):
+        return hash(self._spec)
+
+    def __eq__(self, other: str):
+        """Case insensitive equality."""
+        if self.__class__ is not other.__class__:
+            return self._spec == other.upper()
+        return self._spec == other._spec
+
+    def __lt__(self, other):
+        if self.__class__ is not other.__class__:
+            return NotImplemented
+        return self._spec < other._spec
+
+    def __str__(self):
+        return self.original
+
+    def __repr__(self):
+        return repr(self.original)
+
+
 class EpisodeList(click.ParamType):
     name = "episodelist"
 
-    def convert(self, value, param=None, ctx=None) -> Tuple[List[str], int]:
+    def convert(self, value, param=None, ctx=None) -> Tuple[List[EpisodeParam], int]:
         biggest_last_n = 0
         episodes = set()
         episode_range_re = re.compile(r"^([0-9]{1,4})-([0-9]{1,4})$")
 
-        for spec in value.upper().split(","):
+        for param in value.split(","):
+            spec = param.upper()
+
             if spec.isnumeric():
-                episodes.add(spec.zfill(4))
+                episodes.add(EpisodeParam(spec.zfill(4)))
                 continue
 
             if spec == "LAST":
@@ -54,11 +84,11 @@ class EpisodeList(click.ParamType):
             if m:
                 first, last = m.group(1, 2)
                 start, end = int(first), int(last) + 1
-                episodes |= set(f"{e:04}" for e in range(start, end))
+                episodes |= set(EpisodeParam(f"{e:04}") for e in range(start, end))
                 continue
 
             if spec:
-                episodes.add(spec)
+                episodes.add(EpisodeParam(param))
 
         return sorted(episodes), biggest_last_n
 
@@ -151,14 +181,14 @@ def main(ctx, podcast_name, download_dir, max_threads, episodes_param, show_epis
     all_rss_items = get_all_rss_items(rss_root, podcast.rss_parser)
 
     if episodes_param is not None:
-        episode_numbers, last_n = episodes_param
+        episode_params, last_n = episodes_param
         rss_items, unknown_episodes = filter_rss_items(
-            all_rss_items, episode_numbers, last_n
+            all_rss_items, episode_params, last_n
         )
         if unknown_episodes:
             print(
                 "WARNING: Unknown episode numbers:",
-                ",".join(unknown_episodes),
+                ", ".join(str(e) for e in unknown_episodes),
                 file=sys.stderr,
                 flush=True,
             )
