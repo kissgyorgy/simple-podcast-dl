@@ -46,6 +46,3 @@ PODCASTS = [
 ]
 
 PODCAST_MAP = {p.name: p for p in PODCASTS}
-
-LONGEST_NAME = max(len(p.name) for p in PODCASTS)
-LONGEST_TITLE = max(len(p.title) for p in PODCASTS)

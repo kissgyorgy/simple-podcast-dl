@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from operator import attrgetter
 import click
 from .site_parser import parse_site, InvalidSite
-from .podcasts import PODCASTS, LONGEST_NAME, LONGEST_TITLE
+from .podcasts import PODCASTS
 from .podcast_dl import (
     Episode,
     ensure_download_dir,
@@ -97,11 +97,17 @@ def list_podcasts(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
     click.echo("The following podcasts are supported:")
-    format_str = "{:<%s}{:<%s}{}" % (LONGEST_NAME + 4, LONGEST_TITLE + 4)
+
+    longest_name = max(len(p.name) for p in PODCASTS)
+    longest_title = max(len(p.title) for p in PODCASTS)
+    format_str = "{:<%s}{:<%s}{}" % (longest_name + 4, longest_title + 4)
+
     click.echo(format_str.format("Name", "Title", "Webpage"))
     click.echo(format_str.format("----", "-----", "-------"))
+
     for podcast in sorted(PODCASTS, key=attrgetter("name")):
         click.echo(format_str.format(podcast.name, podcast.title, podcast.url))
+
     ctx.exit()
 
 
