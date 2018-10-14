@@ -18,6 +18,7 @@ from .podcast_dl import (
     filter_rss_items,
     find_missing,
     download_episodes,
+    download_episodes_with_progressbar,
 )
 
 HELP = """
@@ -147,6 +148,12 @@ def list_podcasts(ctx, param, value):
     callback=list_podcasts,
 )
 @click.option(
+    "-p",
+    "--progress",
+    is_flag=True,
+    help="Show progress bar instead of detailed messages during download.",
+)
+@click.option(
     "-s", "--show-episodes", help="Show the list of episodes for PODCAST.", is_flag=True
 )
 @click.option(
@@ -158,7 +165,15 @@ def list_podcasts(ctx, param, value):
 )
 @click.version_option(None, "-V", "--version")
 @click.pass_context
-def main(ctx, podcast_name, download_dir, max_threads, episodes_param, show_episodes):
+def main(
+    ctx,
+    podcast_name,
+    download_dir,
+    max_threads,
+    episodes_param,
+    show_episodes,
+    progress,
+):
     if len(sys.argv) == 1:
         help_text = ctx.command.get_help(ctx)
         click.echo(help_text)
@@ -216,7 +231,10 @@ def main(ctx, podcast_name, download_dir, max_threads, episodes_param, show_epis
 
     click.echo(f"Found a total of {len(missing_episodes)} missing episodes.")
     try:
-        download_episodes(missing_episodes, max_threads)
+        if progress:
+            download_episodes_with_progressbar(missing_episodes, max_threads)
+        else:
+            download_episodes(missing_episodes, max_threads)
     except KeyboardInterrupt:
         click.secho(
             "CTRL-C caught, finishing incomplete downloads...\n"

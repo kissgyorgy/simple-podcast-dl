@@ -25,7 +25,7 @@ so it will be synced to my phone and I can listen the episodes without internet 
 ## Installation
 
 You need at least Python 3.6, then you can simply run:
-```bash
+```
 $ pip3 install simple-podcast-dl
 ```
 
@@ -33,46 +33,52 @@ $ pip3 install simple-podcast-dl
 ## Getting started
 
 It is as simple as running the command:
-```bash
+```
 $ podcast-dl talkpython.fm
 ```
 
 And the podcast will be downloaded to the "talkpython.fm" directory.  
 You can change the download directory by specifying the `--directory`
 (or `-d`) option:
-```bash
+```
 $ podcast-dl talkpython.fm -d talkpython-podcast
 ```
 
 You can list the supported podcast sites with the `--list-podcasts`
 (or `-l`) option:
-```bash
+```
 $ podcast-dl --list-podcasts
 ```
 
 You can specify which episodes to download with the `--episodes`
 (or `-e`) option:
-```bash
+```
 $ podcast-dl --episodes 1,2,3 talkpython
 ```
 
 You can use the "last" or "last:n" keyword to select the last or last n number
 of episodes to download:
-```bash
+```
 $ podcast-dl --episodes last:3 talkpython
 ```
 
 You can list the podcast episodes sorted by episode number with
 `--show-episodes` or (`-s`):
-```bash
+```
 $ podcast-dl --show-episodes talkpython
 ```
 
 Or you can even combine it with selecting episodes:
-```bash
+```
 $ podcast-dl --show-episodes -e 1-5 talkpython
 ```
 
+It can show a progress bar with the `--progress` or (`-s`) option:
+```
+$ podcast-dl -p talkpython
+Found a total of 182 missing episodes.
+  [##########--------------------------]   28%  00:03:16
+```
 
 ## Usage
 
@@ -87,12 +93,16 @@ Usage: podcast-dl [OPTIONS] PODCAST
 Options:
   -d, --download-dir PATH         Where to save downloaded episodes. Can be
                                   specified by the DOWNLOAD_DIR environment
-                                  variable.  [default: (specified PODCAST)]
+                                  variable.
   -t, --max-threads INTEGER RANGE
                                   Number of threads to start for the download.
                                   Can be specified with the MAX_THREADS
                                   environment variable.  [default: 10]
   -l, --list-podcasts             List of supported podcasts, ordered by name.
+  -p, --progress                  Show progress bar instead of detailed
+                                  messages during download.
+  -s, --show-episodes             Show the list of episodes for PODCAST.
+  -e, --episodes EPISODELIST      Episodes to download.
   -V, --version                   Show the version and exit.
   -h, --help                      Show this message and exit.
 ```
@@ -102,18 +112,18 @@ Options:
 
 The project have a `Pipfile`, so you can simply install everything needed for development with a single command:
 
-```bash
+```
 $ pip install pipenv
 $ pipenv install --dev
 ```
 
 You should format your code with black (it's included in the development requirements):
 
-```bash
+```
 $ pipenv run black .
 ```
 
 You can run the tests with:
-```bash
+```
 $ pipenv run pytest
 ```

@@ -25,16 +25,16 @@ class Episode:
     def is_missing(self):
         return not self.full_path.exists()
 
-    def download(self):
-        click.echo(f"Getting episode: {self.url}")
+    def download(self, print_func):
+        print_func(f"Getting episode: {self.url}")
         with requests.get(self.url, stream=True) as response:
-            self._save_atomic(response)
-        click.secho(f"Finished downloading: {self.filename}", fg="green")
+            self._save_atomic(response, print_func)
+        print_func(f"Finished downloading: {self.filename}", fg="green")
 
-    def _save_atomic(self, response):
+    def _save_atomic(self, response, print_func):
         partial_filename = self.full_path.with_suffix(".partial")
         with partial_filename.open("wb") as fp:
-            click.echo(f"Writing file: {self.filename}.partial")
+            print_func(f"Writing file: {self.filename}.partial")
             for chunk in response.iter_content(chunk_size=None):
                 fp.write(chunk)
         partial_filename.rename(self.full_path)
@@ -111,7 +111,30 @@ def find_missing(episodes):
 
 
 def download_episodes(episodes, max_threads):
-    with ThreadPoolExecutor(max_workers=max_threads) as executor:
+    with ThreadPoolExecutor(max_workers=max_threads) as exe:
         for episode_group in grouper(episodes, max_threads):
-            future_group = [executor.submit(ep.download) for ep in episode_group]
+            future_group = [
+                exe.submit(ep.download, print_func=click.secho) for ep in episode_group
+            ]
             wait(future_group)
+
+
+def _noprint(*args, **kwargs):
+    """Do nothing with the arguments. Used for suppressing print output."""
+
+
+def download_episodes_with_progressbar(episodes, max_threads):
+    executor = ThreadPoolExecutor(max_workers=max_threads)
+    progressbar = click.progressbar(length=len(episodes))
+
+    with executor as exe, progressbar as bar:
+        bar.update(1)
+
+        for episode_group in grouper(episodes, max_threads):
+            future_group = [
+                exe.submit(ep.download, print_func=_noprint) for ep in episode_group
+            ]
+            wait(future_group)
+            bar.update(max_threads)
+
+        bar.update(100)
