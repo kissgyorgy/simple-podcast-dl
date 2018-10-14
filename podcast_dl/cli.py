@@ -218,7 +218,8 @@ def main(
     if show_episodes:
         click.echo("List of episodes:")
         for item in rss_items:
-            click.echo(item.episode or f" N/A - {item.title}")
+            episodenum = item.episode or " N/A"
+            click.echo(f"{episodenum} - {item.title}")
         return 0
 
     episodes = (Episode(item, podcast, download_dir) for item in rss_items)
