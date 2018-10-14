@@ -122,9 +122,8 @@ def list_podcasts(ctx, param, value):
     envvar="DOWNLOAD_DIR",
     help=(
         "Where to save downloaded episodes. Can be specified by the "
-        "DOWNLOAD_DIR environment variable."
+        "DOWNLOAD_DIR environment variable.  [default: name of PODCAST]"
     ),
-    show_default="name of PODCAST",
 )
 @click.option(
     "-t",
