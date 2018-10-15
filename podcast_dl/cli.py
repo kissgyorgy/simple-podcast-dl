@@ -20,6 +20,8 @@ from .podcast_dl import (
     download_episodes,
     download_episodes_with_progressbar,
 )
+from .utils import noprint
+
 
 HELP = """
 Download podcast episodes to the given directory
@@ -162,6 +164,9 @@ def list_podcasts(ctx, param, value):
     help="Episodes to download.",
     type=EpisodeList(),
 )
+@click.option(
+    "-v", "--verbose", is_flag=True, help="Show detailed informations during download."
+)
 @click.version_option(None, "-V", "--version")
 @click.pass_context
 def main(
@@ -172,6 +177,7 @@ def main(
     episodes_param,
     show_episodes,
     progress,
+    verbose,
 ):
     if len(sys.argv) == 1:
         help_text = ctx.command.get_help(ctx)
@@ -195,6 +201,8 @@ def main(
 
     if download_dir is None:
         download_dir = Path(podcast.name)
+
+    vprint = click.secho if verbose else noprint
 
     ensure_download_dir(download_dir)
     rss_root = download_rss(podcast.rss)
@@ -223,7 +231,7 @@ def main(
         return 0
 
     episodes = (Episode(item, podcast, download_dir) for item in rss_items)
-    missing_episodes = find_missing(episodes)
+    missing_episodes = find_missing(episodes, vprint)
 
     if not missing_episodes:
         click.secho("Every episode is downloaded.", fg="green")
@@ -234,7 +242,7 @@ def main(
         if progress:
             download_episodes_with_progressbar(missing_episodes, max_threads)
         else:
-            download_episodes(missing_episodes, max_threads)
+            download_episodes(missing_episodes, max_threads, vprint)
     except KeyboardInterrupt:
         click.secho(
             "CTRL-C caught, finishing incomplete downloads...\n"
@@ -242,5 +250,7 @@ def main(
             fg="yellow",
             err=True,
         )
+        return 1
 
+    click.secho("Done.", fg="green")
     return 0

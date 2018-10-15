@@ -9,7 +9,7 @@ import requests
 from lxml import etree
 from .podcasts import Podcast
 from .rss_parsers import BaseItem
-from .utils import grouper
+from .utils import grouper, noprint
 
 
 class Episode:
@@ -25,16 +25,16 @@ class Episode:
     def is_missing(self):
         return not self.full_path.exists()
 
-    def download(self, print_func):
-        print_func(f"Getting episode: {self.url}")
+    def download(self, vprint):
+        vprint(f"Getting episode: {self.url}")
         with requests.get(self.url, stream=True) as response:
-            self._save_atomic(response, print_func)
-        print_func(f"Finished downloading: {self.filename}", fg="green")
+            self._save_atomic(response, vprint)
+        vprint(f"Finished downloading: {self.filename}", fg="green")
 
-    def _save_atomic(self, response, print_func):
+    def _save_atomic(self, response, vprint):
         partial_filename = self.full_path.with_suffix(".partial")
         with partial_filename.open("wb") as fp:
-            print_func(f"Writing file: {self.filename}.partial")
+            vprint(f"Writing file: {self.filename}.partial")
             for chunk in response.iter_content(chunk_size=None):
                 fp.write(chunk)
         partial_filename.rename(self.full_path)
@@ -88,7 +88,7 @@ def filter_rss_items(all_rss_items, episode_params, last_n):
     return filtered_items, sorted(episode_params_left)
 
 
-def find_missing(episodes):
+def find_missing(episodes, vprint):
     click.echo("Searching missing episodes...")
     rv = []
 
@@ -96,7 +96,7 @@ def find_missing(episodes):
         if not ep.is_missing:
             continue
 
-        click.echo(f"Found missing episode: {ep.filename}")
+        vprint(f"Found missing episode: {ep.filename}")
         if ep.number is None:
             click.secho(
                 "WARNING: Episode has no numeric episode number. The filename for "
@@ -110,20 +110,20 @@ def find_missing(episodes):
     return rv
 
 
-def download_episodes(episodes, max_threads):
+def download_episodes(episodes, max_threads, vprint):
+    click.echo(f"Downloading episodes...")
+
     with ThreadPoolExecutor(max_workers=max_threads) as exe:
         for episode_group in grouper(episodes, max_threads):
             future_group = [
-                exe.submit(ep.download, print_func=click.secho) for ep in episode_group
+                exe.submit(ep.download, vprint=vprint) for ep in episode_group
             ]
             wait(future_group)
 
 
-def _noprint(*args, **kwargs):
-    """Do nothing with the arguments. Used for suppressing print output."""
-
-
 def download_episodes_with_progressbar(episodes, max_threads):
+    click.echo(f"Downloading episodes...")
+
     executor = ThreadPoolExecutor(max_workers=max_threads)
     progressbar = click.progressbar(length=len(episodes))
 
@@ -132,7 +132,7 @@ def download_episodes_with_progressbar(episodes, max_threads):
 
         for episode_group in grouper(episodes, max_threads):
             future_group = [
-                exe.submit(ep.download, print_func=_noprint) for ep in episode_group
+                exe.submit(ep.download, vprint=noprint) for ep in episode_group
             ]
             wait(future_group)
             bar.update(max_threads)
