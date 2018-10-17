@@ -50,9 +50,9 @@ def test_not_numeric_or_unknown():
     assert convert("2-10bla") == (["2-10BLA"], 0)
 
 
-def mixed_values():
+def test_mixed_values():
     assert convert("1,99,12-14,last,the-changelog") == (
-        ["0001", "0099", "0012", "0013", "0014", "THE-CHANGELOG"],
+        ["0001", "0012", "0013", "0014", "0099", "THE-CHANGELOG"],
         1,
     )
     assert convert("0,12-14,last:5") == (["0000", "0012", "0013", "0014"], 5)
@@ -66,3 +66,8 @@ def test_EpisodeParam_ordering():
 def test_EpisodeParam_equality_with_strings():
     assert cli.EpisodeParam("0005") == "0005"
     assert cli.EpisodeParam("unknown") == "unknown"
+
+
+def test_EpisodeParam_compare_is_case_insensitive():
+    assert cli.EpisodeParam("CaMeLCaSeOrIdonteven") == "camelcaseoridonteven"
+    assert cli.EpisodeParam("capitall") == "CAPITALL"
