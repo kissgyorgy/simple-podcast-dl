@@ -2,8 +2,10 @@ from setuptools import setup
 
 # fmt: off
 install_requires = [
+    "click",
     "lxml",
     "requests",
+    "python-slugify",
 ]
 
 console_scripts = [
@@ -19,7 +21,7 @@ classifiers = [
 
 setup(
     name="simple-podcast-dl",
-    version="1.0",
+    version="1.1",
     description="Simple podcast downloader (podcatcher)",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
