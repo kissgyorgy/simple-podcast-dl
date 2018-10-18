@@ -128,16 +128,14 @@ def list_podcasts(ctx, param, value):
     ),
 )
 @click.option(
-    "-t",
-    "--max-threads",
-    type=click.IntRange(0, 10),
-    default=10,
-    envvar="MAX_THREADS",
-    help=(
-        "Number of threads to start for the download. Can be specified"
-        " with the MAX_THREADS environment variable."
-    ),
-    show_default=True,
+    "-e",
+    "--episodes",
+    "episodes_param",
+    help="Episodes to download.",
+    type=EpisodeList(),
+)
+@click.option(
+    "-s", "--show-episodes", help="Show the list of episodes for PODCAST.", is_flag=True
 )
 @click.option(
     "-l",
@@ -155,14 +153,16 @@ def list_podcasts(ctx, param, value):
     help="Show progress bar instead of detailed messages during download.",
 )
 @click.option(
-    "-s", "--show-episodes", help="Show the list of episodes for PODCAST.", is_flag=True
-)
-@click.option(
-    "-e",
-    "--episodes",
-    "episodes_param",
-    help="Episodes to download.",
-    type=EpisodeList(),
+    "-t",
+    "--max-threads",
+    type=click.IntRange(0, 10),
+    default=10,
+    envvar="MAX_THREADS",
+    help=(
+        "Number of threads to start for the download. Can be specified"
+        " with the MAX_THREADS environment variable."
+    ),
+    show_default=True,
 )
 @click.option(
     "-v", "--verbose", is_flag=True, help="Show detailed informations during download."
