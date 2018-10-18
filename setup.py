@@ -19,7 +19,7 @@ classifiers = [
 
 setup(
     name="simple-podcast-dl",
-    version="0.3",
+    version="1.0",
     description="Simple podcast downloader (podcatcher)",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
