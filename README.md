@@ -93,16 +93,17 @@ Usage: podcast-dl [OPTIONS] PODCAST
 Options:
   -d, --download-dir PATH         Where to save downloaded episodes. Can be
                                   specified by the DOWNLOAD_DIR environment
-                                  variable.
+                                  variable.  [default: name of PODCAST]
+  -e, --episodes EPISODELIST      Episodes to download.
+  -s, --show-episodes             Show the list of episodes for PODCAST.
+  -l, --list-podcasts             List of supported podcasts, ordered by name.
+  -p, --progress                  Show progress bar instead of detailed
+                                  messages during download.
   -t, --max-threads INTEGER RANGE
                                   Number of threads to start for the download.
                                   Can be specified with the MAX_THREADS
                                   environment variable.  [default: 10]
-  -l, --list-podcasts             List of supported podcasts, ordered by name.
-  -p, --progress                  Show progress bar instead of detailed
-                                  messages during download.
-  -s, --show-episodes             Show the list of episodes for PODCAST.
-  -e, --episodes EPISODELIST      Episodes to download.
+  -v, --verbose                   Show detailed informations during download.
   -V, --version                   Show the version and exit.
   -h, --help                      Show this message and exit.
 ```
