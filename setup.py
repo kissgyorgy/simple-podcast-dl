@@ -2,6 +2,7 @@ from setuptools import setup
 
 # fmt: off
 install_requires = [
+    "attrs",
     "click",
     "lxml",
     "requests",
@@ -21,7 +22,7 @@ classifiers = [
 
 setup(
     name="simple-podcast-dl",
-    version="1.1",
+    version="1.2",
     description="Simple podcast downloader (podcatcher)",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
