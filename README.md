@@ -111,20 +111,20 @@ Options:
 
 ## Development
 
-The project have a `Pipfile`, so you can simply install everything needed for development with a single command:
+The project have a `, so you can simply install everything needed for development with a single command:
 
 ```
 $ pip install pipenv
-$ pipenv install --dev
+$ poetry install
 ```
 
 You should format your code with black (it's included in the development requirements):
 
 ```
-$ pipenv run black .
+$ poetry run black .
 ```
 
 You can run the tests with:
 ```
-$ pipenv run pytest
+$ poetry run pytest
 ```
