@@ -1,11 +1,12 @@
 import sys
+import asyncio
 from typing import List, Tuple
 from pathlib import Path
 from urllib.parse import urlparse
 from operator import attrgetter
 from concurrent.futures import ThreadPoolExecutor, wait
 import click
-import requests
+import aiohttp
 from lxml import etree
 from .podcasts import Podcast
 from .rss_parsers import BaseItem
@@ -25,25 +26,26 @@ class Episode:
     def is_missing(self):
         return not self.full_path.exists()
 
-    def download(self, vprint):
+    async def download(self, session, vprint):
         vprint(f"Getting episode: {self.url}")
-        with requests.get(self.url, stream=True) as response:
-            self._save_atomic(response, vprint)
+        async with session.get(self.url) as response:
+            await self._save_atomic(response, vprint)
         vprint(f"Finished downloading: {self.filename}", fg="green")
 
-    def _save_atomic(self, response, vprint):
+    async def _save_atomic(self, response, vprint):
         partial_filename = self.full_path.with_suffix(".partial")
         with partial_filename.open("wb") as fp:
             vprint(f"Writing file: {self.filename}.partial")
-            for chunk in response.iter_content(chunk_size=None):
+            async for chunk, _ in response.content.iter_chunks():
                 fp.write(chunk)
         partial_filename.rename(self.full_path)
 
 
-def download_rss(rss_url: str):
+async def download_rss(rss_url: str, future):
     click.echo(f"Downloading RSS feed: {rss_url} ...")
-    res = requests.get(rss_url)
-    return etree.XML(res.content)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(rss_url) as res:
+            future.set_result(etree.XML(await res.read()))
 
 
 def ensure_download_dir(download_dir: Path):
@@ -110,15 +112,16 @@ def find_missing(episodes, vprint):
     return rv
 
 
-def download_episodes(episodes, max_threads, vprint):
+async def download_episodes(episodes, max_threads, vprint):
     click.echo(f"Downloading episodes...")
 
-    with ThreadPoolExecutor(max_workers=max_threads) as exe:
+    async with aiohttp.ClientSession() as session:
         for episode_group in grouper(episodes, max_threads):
-            future_group = [
-                exe.submit(ep.download, vprint=vprint) for ep in episode_group
+            task_group = [
+                asyncio.ensure_future(ep.download(session, vprint=vprint))
+                for ep in episode_group
             ]
-            wait(future_group)
+            await asyncio.wait(task_group)
 
 
 def download_episodes_with_progressbar(episodes, max_threads):

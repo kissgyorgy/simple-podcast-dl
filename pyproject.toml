@@ -21,8 +21,8 @@ python = ">=3.6"
 attrs = "^18.2"
 click = "^7.0"
 python-slugify = "^1.2"
-requests = "^2.20"
 lxml = "^4.2"
+aiohttp = "^3.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.9"

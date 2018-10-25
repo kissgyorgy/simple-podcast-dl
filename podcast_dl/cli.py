@@ -2,6 +2,7 @@
 import os
 import re
 import sys
+import asyncio
 import functools
 from pathlib import Path
 from typing import List, Tuple
@@ -205,7 +206,11 @@ def main(
     vprint = click.secho if verbose else noprint
 
     ensure_download_dir(download_dir)
-    rss_root = download_rss(podcast.rss)
+    loop = asyncio.get_event_loop()
+    rss_future = asyncio.Future()
+    asyncio.ensure_future(download_rss(podcast.rss, rss_future))
+    loop.run_until_complete(rss_future)
+    rss_root = rss_future.result()
     all_rss_items = get_all_rss_items(rss_root, podcast.rss_parser)
 
     if episodes_param is not None:
@@ -238,11 +243,15 @@ def main(
         return 0
 
     click.echo(f"Found a total of {len(missing_episodes)} missing episodes.")
+
+    if progress:
+        pass
+        # dl_coro = download_episodes_with_progressbar(missing_episodes, max_threads)
+    else:
+        dl_coro = download_episodes(missing_episodes, max_threads, vprint)
+
     try:
-        if progress:
-            download_episodes_with_progressbar(missing_episodes, max_threads)
-        else:
-            download_episodes(missing_episodes, max_threads, vprint)
+        loop.run_until_complete(dl_coro)
     except KeyboardInterrupt:
         click.secho(
             "CTRL-C caught, finishing incomplete downloads...\n"
@@ -251,6 +260,8 @@ def main(
             err=True,
         )
         return 1
+    finally:
+        loop.close()
 
     click.secho("Done.", fg="green")
     return 0
