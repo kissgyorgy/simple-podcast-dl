@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Tuple
 from concurrent.futures import ThreadPoolExecutor
 from operator import attrgetter
+import aiohttp
 import click
 from .site_parser import parse_site, InvalidSite
 from .podcasts import PODCASTS
@@ -206,9 +207,10 @@ def main(
     vprint = click.secho if verbose else noprint
 
     ensure_download_dir(download_dir)
+    http = aiohttp.ClientSession()
     loop = asyncio.get_event_loop()
     rss_future = asyncio.Future()
-    asyncio.ensure_future(download_rss(podcast.rss, rss_future))
+    asyncio.ensure_future(download_rss(http, podcast.rss, rss_future))
     loop.run_until_complete(rss_future)
     rss_root = rss_future.result()
     all_rss_items = get_all_rss_items(rss_root, podcast.rss_parser)
@@ -248,7 +250,7 @@ def main(
         pass
         # dl_coro = download_episodes_with_progressbar(missing_episodes, max_threads)
     else:
-        dl_coro = download_episodes(missing_episodes, max_threads, vprint)
+        dl_coro = download_episodes(http, missing_episodes, max_threads, vprint)
 
     try:
         loop.run_until_complete(dl_coro)
@@ -262,6 +264,7 @@ def main(
         return 1
     finally:
         loop.close()
+        http.close()
 
     click.secho("Done.", fg="green")
     return 0

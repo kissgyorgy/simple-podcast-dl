@@ -26,9 +26,9 @@ class Episode:
     def is_missing(self):
         return not self.full_path.exists()
 
-    async def download(self, session, vprint):
+    async def download(self, http, vprint):
         vprint(f"Getting episode: {self.url}")
-        async with session.get(self.url) as response:
+        async with http.get(self.url) as response:
             await self._save_atomic(response, vprint)
         vprint(f"Finished downloading: {self.filename}", fg="green")
 
@@ -41,11 +41,10 @@ class Episode:
         partial_filename.rename(self.full_path)
 
 
-async def download_rss(rss_url: str, future):
+async def download_rss(http, rss_url: str, future):
     click.echo(f"Downloading RSS feed: {rss_url} ...")
-    async with aiohttp.ClientSession() as session:
-        async with session.get(rss_url) as res:
-            future.set_result(etree.XML(await res.read()))
+    async with http.get(rss_url) as res:
+        future.set_result(etree.XML(await res.read()))
 
 
 def ensure_download_dir(download_dir: Path):
@@ -112,16 +111,15 @@ def find_missing(episodes, vprint):
     return rv
 
 
-async def download_episodes(episodes, max_threads, vprint):
+async def download_episodes(http, episodes, max_threads, vprint):
     click.echo(f"Downloading episodes...")
 
-    async with aiohttp.ClientSession() as session:
-        for episode_group in grouper(episodes, max_threads):
-            task_group = [
-                asyncio.ensure_future(ep.download(session, vprint=vprint))
-                for ep in episode_group
-            ]
-            await asyncio.wait(task_group)
+    for episode_group in grouper(episodes, max_threads):
+        task_group = [
+            asyncio.ensure_future(ep.download(http, vprint=vprint))
+            for ep in episode_group
+        ]
+        await asyncio.wait(task_group)
 
 
 def download_episodes_with_progressbar(episodes, max_threads):
