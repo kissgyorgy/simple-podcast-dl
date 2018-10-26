@@ -207,11 +207,11 @@ def main(
 
     vprint = click.secho if verbose else noprint
 
-    http = aiohttp.ClientSession()
-    atexit.register(http.close)
-
     loop = asyncio.get_event_loop()
     atexit.register(loop.close)
+
+    http = aiohttp.ClientSession(loop=loop)
+    atexit.register(http.close)
 
     ensure_download_dir(download_dir)
     rss_root = loop.run_until_complete(download_rss(http, podcast.rss))
