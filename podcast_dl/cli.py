@@ -19,6 +19,7 @@ from .podcast_dl import (
     download_rss,
     get_all_rss_items,
     filter_rss_items,
+    make_episodes,
     find_missing,
     download_episodes,
     download_episodes_with_progressbar,
@@ -202,18 +203,9 @@ def main(
         )
         return 1
 
-    if download_dir is None:
-        download_dir = Path(podcast.name)
-
     vprint = click.secho if verbose else noprint
-
-    loop = asyncio.get_event_loop()
-    atexit.register(loop.close)
-
-    http = aiohttp.ClientSession(loop=loop)
-    atexit.register(lambda: loop.run_until_complete(http.close()))
-
-    ensure_download_dir(download_dir)
+    loop = _make_asyncio_loop()
+    http = _make_async_http_client(loop)
     rss_root = loop.run_until_complete(download_rss(http, podcast.rss))
     all_rss_items = get_all_rss_items(rss_root, podcast.rss_parser)
 
@@ -222,24 +214,18 @@ def main(
         rss_items, unknown_episodes = filter_rss_items(
             all_rss_items, episode_params, last_n
         )
-        if unknown_episodes:
-            click.secho(
-                "WARNING: Unknown episode numbers:"
-                + ", ".join(str(e) for e in unknown_episodes),
-                fg="yellow",
-                err=True,
-            )
+        _warn_about_unknown_episodes(unknown_episodes)
     else:
         rss_items = all_rss_items
 
     if show_episodes:
-        click.echo("List of episodes:")
-        for item in rss_items:
-            episodenum = item.episode or " N/A"
-            click.echo(f"{episodenum} - {item.title}")
+        list_episodes(rss_items)
         return 0
 
-    episodes = (Episode(item, podcast, download_dir) for item in rss_items)
+    if download_dir is None:
+        download_dir = Path(podcast.name)
+    ensure_download_dir(download_dir)
+    episodes = make_episodes(podcast, download_dir, rss_items)
     missing_episodes = find_missing(episodes, vprint)
 
     if not missing_episodes:
@@ -267,3 +253,32 @@ def main(
 
     click.secho("Done.", fg="green")
     return 0
+
+
+def _list_episodes(rss_items):
+    click.echo("List of episodes:")
+    for item in rss_items:
+        episodenum = item.episode or " N/A"
+        click.echo(f"{episodenum} - {item.title}")
+
+
+def _make_asyncio_loop():
+    loop = asyncio.get_event_loop()
+    atexit.register(loop.close)
+    return loop
+
+
+def _make_async_http_client(loop):
+    http = aiohttp.ClientSession(loop=loop)
+    atexit.register(lambda: loop.run_until_complete(http.close()))
+    return http
+
+
+def _warn_about_unknown_episodes(unknown_episodes):
+    if unknown_episodes:
+        click.secho(
+            "WARNING: Unknown episode numbers:"
+            + ", ".join(str(e) for e in unknown_episodes),
+            fg="yellow",
+            err=True,
+        )

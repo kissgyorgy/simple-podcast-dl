@@ -89,6 +89,10 @@ def filter_rss_items(all_rss_items, episode_params, last_n):
     return filtered_items, sorted(episode_params_left)
 
 
+def make_episodes(podcast, download_dir, rss_items):
+    return (Episode(item, podcast, download_dir) for item in rss_items)
+
+
 def find_missing(episodes, vprint):
     click.echo("Searching missing episodes...")
     rv = []
