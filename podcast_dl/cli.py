@@ -207,19 +207,14 @@ def main(
 
     vprint = click.secho if verbose else noprint
 
-    ensure_download_dir(download_dir)
-
     http = aiohttp.ClientSession()
     atexit.register(http.close)
 
     loop = asyncio.get_event_loop()
     atexit.register(loop.close)
 
-    rss_future = asyncio.Future()
-    asyncio.ensure_future(download_rss(http, podcast.rss, rss_future))
-    loop.run_until_complete(rss_future)
-    rss_root = rss_future.result()
-
+    ensure_download_dir(download_dir)
+    rss_root = loop.run_until_complete(download_rss(http, podcast.rss))
     all_rss_items = get_all_rss_items(rss_root, podcast.rss_parser)
 
     if episodes_param is not None:

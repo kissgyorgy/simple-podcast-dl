@@ -41,10 +41,10 @@ class Episode:
         partial_filename.rename(self.full_path)
 
 
-async def download_rss(http, rss_url: str, future):
+async def download_rss(http, rss_url: str):
     click.echo(f"Downloading RSS feed: {rss_url} ...")
     async with http.get(rss_url) as res:
-        future.set_result(etree.XML(await res.read()))
+        return etree.XML(await res.read())
 
 
 def ensure_download_dir(download_dir: Path):
