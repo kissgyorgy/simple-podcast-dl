@@ -211,7 +211,7 @@ def main(
     atexit.register(loop.close)
 
     http = aiohttp.ClientSession(loop=loop)
-    atexit.register(http.close)
+    atexit.register(lambda: loop.run_until_complete(http.close()))
 
     ensure_download_dir(download_dir)
     rss_root = loop.run_until_complete(download_rss(http, podcast.rss))
