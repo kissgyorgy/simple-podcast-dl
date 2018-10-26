@@ -115,28 +115,15 @@ def find_missing(episodes, vprint):
     return rv
 
 
-async def download_episodes(http, episodes, max_threads, vprint):
+async def download_episodes(http, episodes, max_threads, vprint, progressbar):
     click.echo(f"Downloading episodes...")
 
-    for episode_group in grouper(episodes, max_threads):
-        task_group = [ep.download(http, vprint=vprint) for ep in episode_group]
-        await asyncio.wait(task_group)
-
-
-def download_episodes_with_progressbar(episodes, max_threads):
-    click.echo(f"Downloading episodes...")
-
-    executor = ThreadPoolExecutor(max_workers=max_threads)
-    progressbar = click.progressbar(length=len(episodes))
-
-    with executor as exe, progressbar as bar:
-        bar.update(1)
+    with progressbar:
+        progressbar.update(0)
 
         for episode_group in grouper(episodes, max_threads):
-            future_group = [
-                exe.submit(ep.download, vprint=noprint) for ep in episode_group
-            ]
-            wait(future_group)
-            bar.update(max_threads)
+            task_group = [ep.download(http, vprint=vprint) for ep in episode_group]
+            await asyncio.wait(task_group)
+            progressbar.update(max_threads)
 
-        bar.update(100)
+        progressbar.update(100)

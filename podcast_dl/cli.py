@@ -5,6 +5,7 @@ import sys
 import atexit
 import asyncio
 import functools
+import contextlib
 from pathlib import Path
 from typing import List, Tuple
 from concurrent.futures import ThreadPoolExecutor
@@ -22,7 +23,6 @@ from .podcast_dl import (
     make_episodes,
     find_missing,
     download_episodes,
-    download_episodes_with_progressbar,
 )
 from .utils import noprint
 
@@ -153,6 +153,7 @@ def list_podcasts(ctx, param, value):
 @click.option(
     "-p",
     "--progress",
+    "show_progressbar",
     is_flag=True,
     help="Show progress bar instead of detailed messages during download.",
 )
@@ -180,7 +181,7 @@ def main(
     max_threads,
     episodes_param,
     show_episodes,
-    progress,
+    show_progressbar,
     verbose,
 ):
     if len(sys.argv) == 1:
@@ -233,12 +234,10 @@ def main(
         return 0
 
     click.echo(f"Found a total of {len(missing_episodes)} missing episodes.")
-
-    if progress:
-        pass
-        # dl_coro = download_episodes_with_progressbar(missing_episodes, max_threads)
-    else:
-        dl_coro = download_episodes(http, missing_episodes, max_threads, vprint)
+    progressbar = _make_progressbar(show_progressbar, len(missing_episodes))
+    dl_coro = download_episodes(
+        http, missing_episodes, max_threads, vprint, progressbar
+    )
 
     try:
         loop.run_until_complete(dl_coro)
@@ -282,3 +281,21 @@ def _warn_about_unknown_episodes(unknown_episodes):
             fg="yellow",
             err=True,
         )
+
+
+def _make_progressbar(show_progressbar, length):
+    if show_progressbar:
+        return click.progressbar(length=length)
+    else:
+        return _NoProgressbar()
+
+
+class _NoProgressbar:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
+    def update(self, value):
+        """Do nothing. Used when no progress bar needed."""
