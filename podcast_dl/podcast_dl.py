@@ -115,10 +115,7 @@ async def download_episodes(http, episodes, max_threads, vprint):
     click.echo(f"Downloading episodes...")
 
     for episode_group in grouper(episodes, max_threads):
-        task_group = [
-            asyncio.ensure_future(ep.download(http, vprint=vprint))
-            for ep in episode_group
-        ]
+        task_group = [ep.download(http, vprint=vprint) for ep in episode_group]
         await asyncio.wait(task_group)
 
 
