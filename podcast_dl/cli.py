@@ -241,12 +241,9 @@ def main(
     try:
         loop.run_until_complete(dl_coro)
     except KeyboardInterrupt:
-        click.secho(
-            "CTRL-C caught, finishing incomplete downloads...\n"
-            "Press one more time if you want to stop prematurely.",
-            fg="yellow",
-            err=True,
-        )
+        for task in asyncio.Task.all_tasks():
+            task.cancel()
+        click.secho("CTRL-C pressed, aborting...", fg="yellow", err=True)
         return 1
 
     click.secho("Done.", fg="green")
