@@ -24,7 +24,6 @@ from .podcast_dl import (
     find_missing,
     download_episodes,
 )
-from .utils import noprint
 
 
 HELP = """
@@ -164,7 +163,7 @@ def list_podcasts(ctx, param, value):
     default=10,
     envvar="MAX_THREADS",
     help=(
-        "Number of threads to start for the download. Can be specified"
+        "The maximum number of simultaneous downloads. Can be specified"
         " with the MAX_THREADS environment variable."
     ),
     show_default=True,
@@ -204,7 +203,7 @@ def main(
         )
         return 1
 
-    vprint = click.secho if verbose else noprint
+    vprint = click.secho if verbose else _noprint
     loop = _make_asyncio_loop()
     http = _make_async_http_client(loop)
     rss_root = loop.run_until_complete(download_rss(http, podcast.rss))
@@ -252,6 +251,10 @@ def main(
 
     click.secho("Done.", fg="green")
     return 0
+
+
+def _noprint(*args, **kwargs):
+    """Do nothing with the arguments. Used for suppressing print output."""
 
 
 def _list_episodes(rss_items):

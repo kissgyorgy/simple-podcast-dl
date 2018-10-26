@@ -100,9 +100,10 @@ Options:
   -p, --progress                  Show progress bar instead of detailed
                                   messages during download.
   -t, --max-threads INTEGER RANGE
-                                  Number of threads to start for the download.
-                                  Can be specified with the MAX_THREADS
-                                  environment variable.  [default: 10]
+                                  The maximum number of simultaneous
+                                  downloads. Can be specified with the
+                                  MAX_THREADS environment variable.  [default:
+                                  10]
   -v, --verbose                   Show detailed informations during download.
   -V, --version                   Show the version and exit.
   -h, --help                      Show this message and exit.

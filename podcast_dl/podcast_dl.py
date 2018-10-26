@@ -10,7 +10,6 @@ import aiohttp
 from lxml import etree
 from .podcasts import Podcast
 from .rss_parsers import BaseItem
-from .utils import grouper, noprint
 
 
 class Episode:
@@ -26,11 +25,13 @@ class Episode:
     def is_missing(self):
         return not self.full_path.exists()
 
-    async def download(self, http, vprint):
-        vprint(f"Getting episode: {self.url}")
-        async with http.get(self.url) as response:
-            await self._save_atomic(response, vprint)
-        vprint(f"Finished downloading: {self.filename}", fg="green")
+    async def download(self, http, vprint, semaphore, progressbar):
+        async with semaphore:
+            vprint(f"Getting episode: {self.url}")
+            async with http.get(self.url) as response:
+                await self._save_atomic(response, vprint)
+            vprint(f"Finished downloading: {self.filename}", fg="green")
+            progressbar.update(1)
 
     async def _save_atomic(self, response, vprint):
         partial_filename = self.full_path.with_suffix(".partial")
@@ -118,12 +119,9 @@ def find_missing(episodes, vprint):
 async def download_episodes(http, episodes, max_threads, vprint, progressbar):
     click.echo(f"Downloading episodes...")
 
+    semaphore = asyncio.Semaphore(max_threads)
+
     with progressbar:
         progressbar.update(0)
-
-        for episode_group in grouper(episodes, max_threads):
-            task_group = [ep.download(http, vprint=vprint) for ep in episode_group]
-            await asyncio.wait(task_group)
-            progressbar.update(max_threads)
-
-        progressbar.update(100)
+        coros = [ep.download(http, vprint, semaphore, progressbar) for ep in episodes]
+        await asyncio.wait(coros)
