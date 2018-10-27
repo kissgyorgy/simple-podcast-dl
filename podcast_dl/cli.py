@@ -225,7 +225,7 @@ def main(
     if download_dir is None:
         download_dir = Path(podcast.name)
     ensure_download_dir(download_dir)
-    episodes = make_episodes(podcast, download_dir, rss_items)
+    episodes = make_episodes(download_dir, rss_items)
     missing_episodes = find_missing(episodes, vprint)
 
     if not missing_episodes:

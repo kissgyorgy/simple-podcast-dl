@@ -13,7 +13,7 @@ from .rss_parsers import BaseItem
 
 
 class Episode:
-    def __init__(self, item: BaseItem, podcast: Podcast, download_dir: Path):
+    def __init__(self, item: BaseItem, download_dir: Path):
         self.url = item.url
         self.number = item.episode
         self.title = item.title
@@ -90,8 +90,8 @@ def filter_rss_items(all_rss_items, episode_params, last_n):
     return filtered_items, sorted(episode_params_left)
 
 
-def make_episodes(podcast, download_dir, rss_items):
-    return (Episode(item, podcast, download_dir) for item in rss_items)
+def make_episodes(download_dir, rss_items):
+    return (Episode(item, download_dir) for item in rss_items)
 
 
 def find_missing(episodes, vprint):
