@@ -73,7 +73,7 @@ Or you can even combine it with selecting episodes:
 $ podcast-dl --show-episodes -e 1-5 talkpython
 ```
 
-It can show a progress bar with the `--progress` or (`-s`) option:
+It can show a progress bar with the `--progress` or (`-p`) option:
 ```
 $ podcast-dl -p talkpython
 Found a total of 182 missing episodes.
