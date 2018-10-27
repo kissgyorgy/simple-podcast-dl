@@ -2,11 +2,15 @@
 import os
 import re
 import sys
+import atexit
+import asyncio
 import functools
+import contextlib
 from pathlib import Path
 from typing import List, Tuple
 from concurrent.futures import ThreadPoolExecutor
 from operator import attrgetter
+import aiohttp
 import click
 from .site_parser import parse_site, InvalidSite
 from .podcasts import PODCASTS
@@ -16,11 +20,10 @@ from .podcast_dl import (
     download_rss,
     get_all_rss_items,
     filter_rss_items,
+    make_episodes,
     find_missing,
     download_episodes,
-    download_episodes_with_progressbar,
 )
-from .utils import noprint
 
 
 HELP = """
@@ -149,6 +152,7 @@ def list_podcasts(ctx, param, value):
 @click.option(
     "-p",
     "--progress",
+    "show_progressbar",
     is_flag=True,
     help="Show progress bar instead of detailed messages during download.",
 )
@@ -159,7 +163,7 @@ def list_podcasts(ctx, param, value):
     default=10,
     envvar="MAX_THREADS",
     help=(
-        "Number of threads to start for the download. Can be specified"
+        "The maximum number of simultaneous downloads. Can be specified"
         " with the MAX_THREADS environment variable."
     ),
     show_default=True,
@@ -176,7 +180,7 @@ def main(
     max_threads,
     episodes_param,
     show_episodes,
-    progress,
+    show_progressbar,
     verbose,
 ):
     if len(sys.argv) == 1:
@@ -199,13 +203,10 @@ def main(
         )
         return 1
 
-    if download_dir is None:
-        download_dir = Path(podcast.name)
-
-    vprint = click.secho if verbose else noprint
-
-    ensure_download_dir(download_dir)
-    rss_root = download_rss(podcast.rss)
+    vprint = click.secho if verbose else _noprint
+    loop = _make_asyncio_loop()
+    http = _make_async_http_client(loop)
+    rss_root = loop.run_until_complete(download_rss(http, podcast.rss))
     all_rss_items = get_all_rss_items(rss_root, podcast.rss_parser)
 
     if episodes_param is not None:
@@ -213,24 +214,18 @@ def main(
         rss_items, unknown_episodes = filter_rss_items(
             all_rss_items, episode_params, last_n
         )
-        if unknown_episodes:
-            click.secho(
-                "WARNING: Unknown episode numbers:"
-                + ", ".join(str(e) for e in unknown_episodes),
-                fg="yellow",
-                err=True,
-            )
+        _warn_about_unknown_episodes(unknown_episodes)
     else:
         rss_items = all_rss_items
 
     if show_episodes:
-        click.echo("List of episodes:")
-        for item in rss_items:
-            episodenum = item.episode or " N/A"
-            click.echo(f"{episodenum} - {item.title}")
+        list_episodes(rss_items)
         return 0
 
-    episodes = (Episode(item, podcast, download_dir) for item in rss_items)
+    if download_dir is None:
+        download_dir = Path(podcast.name)
+    ensure_download_dir(download_dir)
+    episodes = make_episodes(podcast, download_dir, rss_items)
     missing_episodes = find_missing(episodes, vprint)
 
     if not missing_episodes:
@@ -238,19 +233,69 @@ def main(
         return 0
 
     click.echo(f"Found a total of {len(missing_episodes)} missing episodes.")
+    progressbar = _make_progressbar(show_progressbar, len(missing_episodes))
+    dl_coro = download_episodes(
+        http, missing_episodes, max_threads, vprint, progressbar
+    )
+
     try:
-        if progress:
-            download_episodes_with_progressbar(missing_episodes, max_threads)
-        else:
-            download_episodes(missing_episodes, max_threads, vprint)
+        loop.run_until_complete(dl_coro)
     except KeyboardInterrupt:
-        click.secho(
-            "CTRL-C caught, finishing incomplete downloads...\n"
-            "Press one more time if you want to stop prematurely.",
-            fg="yellow",
-            err=True,
-        )
+        for task in asyncio.Task.all_tasks():
+            task.cancel()
+        click.secho("CTRL-C pressed, aborting...", fg="yellow", err=True)
         return 1
 
     click.secho("Done.", fg="green")
     return 0
+
+
+def _noprint(*args, **kwargs):
+    """Do nothing with the arguments. Used for suppressing print output."""
+
+
+def _list_episodes(rss_items):
+    click.echo("List of episodes:")
+    for item in rss_items:
+        episodenum = item.episode or " N/A"
+        click.echo(f"{episodenum} - {item.title}")
+
+
+def _make_asyncio_loop():
+    loop = asyncio.get_event_loop()
+    atexit.register(loop.close)
+    return loop
+
+
+def _make_async_http_client(loop):
+    http = aiohttp.ClientSession(loop=loop)
+    atexit.register(lambda: loop.run_until_complete(http.close()))
+    return http
+
+
+def _warn_about_unknown_episodes(unknown_episodes):
+    if unknown_episodes:
+        click.secho(
+            "WARNING: Unknown episode numbers:"
+            + ", ".join(str(e) for e in unknown_episodes),
+            fg="yellow",
+            err=True,
+        )
+
+
+def _make_progressbar(show_progressbar, length):
+    if show_progressbar:
+        return click.progressbar(length=length)
+    else:
+        return _NoProgressbar()
+
+
+class _NoProgressbar:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
+    def update(self, value):
+        """Do nothing. Used when no progress bar needed."""

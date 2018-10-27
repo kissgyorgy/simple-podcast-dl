@@ -1,15 +1,15 @@
 import sys
+import asyncio
 from typing import List, Tuple
 from pathlib import Path
 from urllib.parse import urlparse
 from operator import attrgetter
 from concurrent.futures import ThreadPoolExecutor, wait
 import click
-import requests
+import aiohttp
 from lxml import etree
 from .podcasts import Podcast
 from .rss_parsers import BaseItem
-from .utils import grouper, noprint
 
 
 class Episode:
@@ -25,25 +25,27 @@ class Episode:
     def is_missing(self):
         return not self.full_path.exists()
 
-    def download(self, vprint):
-        vprint(f"Getting episode: {self.url}")
-        with requests.get(self.url, stream=True) as response:
-            self._save_atomic(response, vprint)
-        vprint(f"Finished downloading: {self.filename}", fg="green")
+    async def download(self, http, vprint, semaphore, progressbar):
+        async with semaphore:
+            vprint(f"Getting episode: {self.url}")
+            async with http.get(self.url) as response:
+                await self._save_atomic(response, vprint)
+            vprint(f"Finished downloading: {self.filename}", fg="green")
+            progressbar.update(1)
 
-    def _save_atomic(self, response, vprint):
+    async def _save_atomic(self, response, vprint):
         partial_filename = self.full_path.with_suffix(".partial")
         with partial_filename.open("wb") as fp:
             vprint(f"Writing file: {self.filename}.partial")
-            for chunk in response.iter_content(chunk_size=None):
+            async for chunk, _ in response.content.iter_chunks():
                 fp.write(chunk)
         partial_filename.rename(self.full_path)
 
 
-def download_rss(rss_url: str):
+async def download_rss(http, rss_url: str):
     click.echo(f"Downloading RSS feed: {rss_url} ...")
-    res = requests.get(rss_url)
-    return etree.XML(res.content)
+    async with http.get(rss_url) as res:
+        return etree.XML(await res.read())
 
 
 def ensure_download_dir(download_dir: Path):
@@ -88,6 +90,10 @@ def filter_rss_items(all_rss_items, episode_params, last_n):
     return filtered_items, sorted(episode_params_left)
 
 
+def make_episodes(podcast, download_dir, rss_items):
+    return (Episode(item, podcast, download_dir) for item in rss_items)
+
+
 def find_missing(episodes, vprint):
     click.echo("Searching missing episodes...")
     rv = []
@@ -110,31 +116,12 @@ def find_missing(episodes, vprint):
     return rv
 
 
-def download_episodes(episodes, max_threads, vprint):
+async def download_episodes(http, episodes, max_threads, vprint, progressbar):
     click.echo(f"Downloading episodes...")
 
-    with ThreadPoolExecutor(max_workers=max_threads) as exe:
-        for episode_group in grouper(episodes, max_threads):
-            future_group = [
-                exe.submit(ep.download, vprint=vprint) for ep in episode_group
-            ]
-            wait(future_group)
+    semaphore = asyncio.Semaphore(max_threads)
 
-
-def download_episodes_with_progressbar(episodes, max_threads):
-    click.echo(f"Downloading episodes...")
-
-    executor = ThreadPoolExecutor(max_workers=max_threads)
-    progressbar = click.progressbar(length=len(episodes))
-
-    with executor as exe, progressbar as bar:
-        bar.update(1)
-
-        for episode_group in grouper(episodes, max_threads):
-            future_group = [
-                exe.submit(ep.download, vprint=noprint) for ep in episode_group
-            ]
-            wait(future_group)
-            bar.update(max_threads)
-
-        bar.update(100)
+    with progressbar:
+        progressbar.update(0)
+        coros = [ep.download(http, vprint, semaphore, progressbar) for ep in episodes]
+        await asyncio.wait(coros)

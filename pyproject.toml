@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "simple-podcast-dl"
+version = "1.2"
+description = "Simple podcast downloader (podcatcher)"
+authors = ["Kiss György <kissgyorgy@me.com>"]
+repository = "https://github.com/kissgyorgy/simple-podcast-dl"
+readme = "README.md"
+license = "MIT"
+
+packages = [
+    { include = "podcast_dl" },
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords=["podcasts"]
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+attrs = "^18.2"
+click = "^7.0"
+python-slugify = "^1.2"
+lxml = "^4.2"
+aiohttp = "^3.4"
+aiodns = "^1.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.9"
+pytest-sugar = "^0.9.1"
+black = "^18.3-alpha.0"
+
+[tool.poetry.scripts]
+podcast-dl = "podcast_dl.cli:main"
+
+[build-system]
+requires = ["poetry>=0.12", "setuptools", "wheel"]
+build-backend = "poetry.masonry.api"

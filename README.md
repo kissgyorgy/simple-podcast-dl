@@ -100,9 +100,10 @@ Options:
   -p, --progress                  Show progress bar instead of detailed
                                   messages during download.
   -t, --max-threads INTEGER RANGE
-                                  Number of threads to start for the download.
-                                  Can be specified with the MAX_THREADS
-                                  environment variable.  [default: 10]
+                                  The maximum number of simultaneous
+                                  downloads. Can be specified with the
+                                  MAX_THREADS environment variable.  [default:
+                                  10]
   -v, --verbose                   Show detailed informations during download.
   -V, --version                   Show the version and exit.
   -h, --help                      Show this message and exit.
@@ -111,20 +112,20 @@ Options:
 
 ## Development
 
-The project have a `Pipfile`, so you can simply install everything needed for development with a single command:
+The project have a `, so you can simply install everything needed for development with a single command:
 
 ```
 $ pip install pipenv
-$ pipenv install --dev
+$ poetry install
 ```
 
 You should format your code with black (it's included in the development requirements):
 
 ```
-$ pipenv run black .
+$ poetry run black .
 ```
 
 You can run the tests with:
 ```
-$ pipenv run pytest
+$ poetry run pytest
 ```
