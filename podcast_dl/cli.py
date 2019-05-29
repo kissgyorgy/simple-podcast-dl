@@ -219,7 +219,7 @@ def main(
         rss_items = all_rss_items
 
     if show_episodes:
-        list_episodes(rss_items)
+        _list_episodes(rss_items)
         return 0
 
     if download_dir is None:
