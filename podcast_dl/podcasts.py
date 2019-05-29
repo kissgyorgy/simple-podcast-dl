@@ -1,7 +1,7 @@
 """
 List of podcasts and their filename parser types.
 """
-from .rss_parsers import BaseItem, TalkPythonItem, ChangelogItem
+from .rss_parsers import BaseItem, TalkPythonItem, ChangelogItem, IndieHackersItem
 import attr
 
 
@@ -42,6 +42,13 @@ PODCASTS = [
         url="https://www.podcastinit.com/",
         rss="https://www.podcastinit.com/feed/mp3/",
         rss_parser=BaseItem,
+    ),
+    Podcast(
+        name="indiehackers",
+        title="Indie Hackers",
+        url="https://www.indiehackers.com/podcast",
+        rss="http://feeds.backtracks.fm/feeds/indiehackers/indiehackers/feed.xml",
+        rss_parser=IndieHackersItem,
     ),
 ]
 

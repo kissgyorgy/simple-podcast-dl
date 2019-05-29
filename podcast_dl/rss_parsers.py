@@ -85,3 +85,31 @@ class ChangelogItem(BaseItem):
             return None
         else:
             return episode.zfill(4)
+
+
+class IndieHackersItem(BaseItem):
+    @property
+    def title(self):
+        return self._split_title()[1].strip()
+
+    def _split_title(self):
+        # Some title contains long dash some not
+        # Example title: "#077 – Iterating Your Way to a Product..."
+        tt = super().title.replace("–", "-")
+        return tt.split(" - ", 1)
+
+    @property
+    def episode(self):
+        ep = self._split_title()[0]
+        return ep.strip().lstrip("#").zfill(4)
+
+    @property
+    def file_ext(self):
+        enclosure = self._rss_item.xpath("enclosure")[0]
+        url = enclosure.get("url")
+        filename = url.split("/")[-1]
+        # Some filenames has parameters at the end:
+        # 9b312200-acb1-11e8-88f7-0eb9d4683120/067-ryan-hoover-of-product-hunt.mp3?s=1&sd=1&u=1535674169
+        questionmark_position = filename.index("?")
+        filename = filename[:questionmark_position]
+        return os.path.splitext(filename)[-1]

@@ -1,5 +1,10 @@
 from lxml import etree
-from podcast_dl.rss_parsers import BaseItem, ChangelogItem, TalkPythonItem
+from podcast_dl.rss_parsers import (
+    BaseItem,
+    ChangelogItem,
+    TalkPythonItem,
+    IndieHackersItem,
+)
 import pytest
 
 
@@ -41,6 +46,24 @@ def talkpython_item():
                      length="43380149"
                      type="audio/mpeg"/>
           <itunes:episode>178</itunes:episode>
+        </item>
+        """
+    )
+
+
+@pytest.fixture(scope="module")
+def indiehackers_item():
+    return etree.XML(
+        f"""
+        <item {ITUNES_XMLNS}>
+            <title>
+            <![CDATA[
+                #094 – How to Build a Better (Funnier!) Brand for Your Business with Allie LeFevere of Obedient
+            ]]>
+            </title>
+            <enclosure url="https://backtracks.fm/indiehackers/pr/c731ca80-7506-11e9-8abd-0e7751de395c/094-allie-lefevere-of-obedient.mp3?s=1&amp;sd=1&amp;u=1558507606"
+                       length="58681566"
+                       type="audio/mpeg" />
         </item>
         """
     )
@@ -92,3 +115,17 @@ def test_talkpython(talkpython_item):
     assert rss_item.title == "Coverage.py"
     assert rss_item.file_ext == ".mp3"
     assert rss_item.filename == "0178-Coverage-py.mp3"
+
+
+def test_indiehackers(indiehackers_item):
+    rss_item = IndieHackersItem(indiehackers_item)
+    assert rss_item.episode == "0094"
+    assert (
+        rss_item.title
+        == "How to Build a Better (Funnier!) Brand for Your Business with Allie LeFevere of Obedient"
+    )
+    assert rss_item.file_ext == ".mp3"
+    assert (
+        rss_item.filename
+        == "0094-How-to-Build-a-Better-Funnier-Brand-for-Your-Business-with-Allie-LeFevere-of-Obedient.mp3"
+    )
