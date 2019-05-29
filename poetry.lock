@@ -3,7 +3,7 @@ category = "main"
 description = "Simple DNS resolver for asyncio"
 name = "aiodns"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 version = "1.1.1"
 
 [package.dependencies]
