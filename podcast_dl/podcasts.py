@@ -50,6 +50,13 @@ PODCASTS = [
         rss="http://feeds.backtracks.fm/feeds/indiehackers/indiehackers/feed.xml",
         rss_parser=IndieHackersItem,
     ),
+    Podcast(
+        name="realpython",
+        title="Real Python",
+        url="https://realpython.com/podcasts/rpp/",
+        rss="https://realpython.com/podcasts/rpp/feed",
+        rss_parser=BaseItem,
+    ),
 ]
 
 PODCAST_MAP = {p.name: p for p in PODCASTS}
