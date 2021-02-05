@@ -25,13 +25,11 @@ class Episode:
     def is_missing(self):
         return not self.full_path.exists()
 
-    async def download(self, http, vprint, semaphore, progressbar):
-        async with semaphore:
-            vprint(f"Getting episode: {self.url}")
-            async with http.get(self.url) as response:
-                await self._save_atomic(response, vprint)
-            vprint(f"Finished downloading: {self.filename}", fg="green")
-            progressbar.update(1)
+    async def download(self, http, vprint):
+        vprint(f"Getting episode: {self.url}")
+        async with http.get(self.url) as response:
+            await self._save_atomic(response, vprint)
+        vprint(f"Finished downloading: {self.filename}", fg="green")
 
     async def _save_atomic(self, response, vprint):
         partial_filename = self.full_path.with_suffix(".partial")
@@ -121,7 +119,12 @@ async def download_episodes(http, episodes, max_threads, vprint, progressbar):
 
     semaphore = asyncio.Semaphore(max_threads)
 
+    async def with_progressbar(coro):
+        async with semaphore:
+            await coro
+            progressbar.update(1)
+
     with progressbar:
         progressbar.update(0)
-        coros = [ep.download(http, vprint, semaphore, progressbar) for ep in episodes]
+        coros = [with_progressbar(ep.download(http, vprint)) for ep in episodes]
         await asyncio.wait(coros)
