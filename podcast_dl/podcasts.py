@@ -57,6 +57,13 @@ PODCASTS = [
         rss="https://realpython.com/podcasts/rpp/feed",
         rss_parser=BaseItem,
     ),
+    Podcast(
+        name="kubernetespodcast",
+        title="Kubernetes Podcast",
+        url="https://kubernetespodcast.com/",
+        rss="https://kubernetespodcast.com/feeds/audio.xml",
+        rss_parser=BaseItem,
+    ),
 ]
 
 PODCAST_MAP = {p.name: p for p in PODCASTS}

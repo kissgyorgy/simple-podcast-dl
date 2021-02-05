@@ -21,6 +21,7 @@ so it will be synced to my phone and I can listen the episodes without internet 
 - Podcast.\_\_init\_\_ (https://www.podcastinit.com/)
 - Indie Hackers (https://www.indiehackers.com/podcast)
 - Real Python (https://realpython.com/podcasts/rpp/)
+- Kubernetes Podcast (https://kubernetespodcast.com/)
 
 ## Installation
 

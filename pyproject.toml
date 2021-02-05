@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "simple-podcast-dl"
-version = "1.4"
+version = "1.5"
 description = "Simple podcast downloader (podcatcher)"
 authors = ["Kiss György <kissgyorgy@me.com>"]
 repository = "https://github.com/kissgyorgy/simple-podcast-dl"
