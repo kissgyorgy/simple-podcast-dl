@@ -1,21 +1,17 @@
 #!/usr/bin/env python3
-import os
 import re
 import sys
 import atexit
 import asyncio
 import functools
-import contextlib
 from pathlib import Path
 from typing import List, Tuple
-from concurrent.futures import ThreadPoolExecutor
 from operator import attrgetter
 import aiohttp
 import click
 from .site_parser import parse_site, InvalidSite
 from .podcasts import PODCASTS
 from .podcast_dl import (
-    Episode,
     ensure_download_dir,
     download_rss,
     get_all_rss_items,
@@ -201,7 +197,6 @@ def main(
             f'See the list of supported podcasts with "{ctx.info_name} --list-podcasts"',
             ctx=ctx,
         )
-        return 1
 
     vprint = click.secho if verbose else _noprint
     loop = _make_asyncio_loop()

@@ -1,14 +1,8 @@
-import sys
 import asyncio
-from typing import List, Tuple
 from pathlib import Path
-from urllib.parse import urlparse
 from operator import attrgetter
-from concurrent.futures import ThreadPoolExecutor, wait
 import click
-import aiohttp
 from lxml import etree
-from .podcasts import Podcast
 from .rss_parsers import BaseItem
 
 
@@ -102,12 +96,11 @@ def find_missing(episodes, vprint):
 
         vprint(f"Found missing episode: {ep.filename}")
         if ep.number is None:
-            click.secho(
+            warning_message = (
                 "WARNING: Episode has no numeric episode number. The filename for "
-                f'episode "{ep.title}" will not have a numeric episode prefix.',
-                fg="yellow",
-                err=True,
+                f'episode "{ep.title}" will not have a numeric episode prefix.'
             )
+            click.secho(warning_message, fg="yellow", err=True)
 
         rv.append(ep)
 
