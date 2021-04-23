@@ -120,7 +120,7 @@ Options:
 
 ## Development
 
-The project have a `, so you can simply install everything needed for development with a single command:
+The project has a `pyproject.toml`, so you can simply install everything needed for development with a single command:
 
 ```
 $ pip install pipenv
