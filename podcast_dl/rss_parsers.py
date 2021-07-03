@@ -3,8 +3,6 @@ URL to filename parsers. They can be generic or entirely site-specific, based on
 what type of file names the RSS contains.
 """
 import os
-import re
-import sys
 from lxml import etree
 from slugify import slugify
 
