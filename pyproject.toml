@@ -36,3 +36,8 @@ podcast-dl = "podcast_dl.cli:main"
 [build-system]
 requires = ["poetry>=0.12", "setuptools", "wheel"]
 build-backend = "poetry.masonry.api"
+
+[tool.pyright]
+ignore = [
+    "podcast_dl/podcasts.py",
+]
