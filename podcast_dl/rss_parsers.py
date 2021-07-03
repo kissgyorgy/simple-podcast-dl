@@ -108,6 +108,19 @@ class IndieHackersItem(BaseItem):
         filename = url.split("/")[-1]
         # Some filenames has parameters at the end:
         # 9b312200-acb1-11e8-88f7-0eb9d4683120/067-ryan-hoover-of-product-hunt.mp3?s=1&sd=1&u=1535674169
-        questionmark_position = filename.index("?")
-        filename = filename[:questionmark_position]
+        questionmark_pos = filename.index("?")
+        filename = filename[:questionmark_pos]
         return os.path.splitext(filename)[-1]
+
+
+class CoRecursiveItem(BaseItem):
+    @property
+    def title(self):
+        items = self._rss_item.xpath("itunes:title", namespaces=self.NSMAP)
+        return items[0].text
+
+    @property
+    def filename(self):
+        super_filename = super().filename
+        questionmark_pos = super_filename.index("?")
+        return super_filename[:questionmark_pos]

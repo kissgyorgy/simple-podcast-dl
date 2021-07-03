@@ -64,6 +64,13 @@ PODCASTS = [
         rss="https://kubernetespodcast.com/feeds/audio.xml",
         rss_parser=rssp.BaseItem,
     ),
+    Podcast(
+        name="corecursive",
+        title="CoRecursive - The Stories Behind The Code",
+        url="https://corecursive.com/",
+        rss="https://corecursive.libsyn.com/feed",
+        rss_parser=rssp.CoRecursiveItem,
+    ),
 ]
 
 PODCAST_MAP = {p.name: p for p in PODCASTS}
