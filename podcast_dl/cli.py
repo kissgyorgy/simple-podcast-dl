@@ -39,7 +39,7 @@ class EpisodeParam:
     def __hash__(self):
         return hash(self._spec)
 
-    def __eq__(self, other: str):
+    def __eq__(self, other):
         """Case insensitive equality."""
         if self.__class__ is not other.__class__:
             return self._spec == other.upper()
