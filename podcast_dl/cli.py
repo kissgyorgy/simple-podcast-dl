@@ -7,7 +7,7 @@ import functools
 from pathlib import Path
 from typing import List, Tuple
 from operator import attrgetter
-import aiohttp
+import httpx
 import click
 from .site_parser import parse_site, InvalidSite
 from .podcasts import PODCASTS
@@ -263,8 +263,8 @@ def _make_asyncio_loop():
 
 
 def _make_async_http_client(loop):
-    http = aiohttp.ClientSession(loop=loop)
-    atexit.register(lambda: loop.run_until_complete(http.close()))
+    http = httpx.AsyncClient()
+    atexit.register(lambda: loop.run_until_complete(http.aclose()))
     return http
 
 

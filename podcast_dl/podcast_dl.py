@@ -2,6 +2,7 @@ import asyncio
 from pathlib import Path
 from operator import attrgetter
 import click
+import httpx
 from lxml import etree
 from .rss_parsers import BaseItem
 
@@ -19,9 +20,9 @@ class Episode:
     def is_missing(self):
         return not self.full_path.exists()
 
-    async def download(self, http, vprint):
+    async def download(self, http: httpx.AsyncClient, vprint):
         vprint(f"Getting episode: {self.url}")
-        async with http.get(self.url) as response:
+        async with http.stream("GET", self.url) as response:
             await self._save_atomic(response, vprint)
         vprint(f"Finished downloading: {self.filename}", fg="green")
 
@@ -29,15 +30,15 @@ class Episode:
         partial_filename = self.full_path.with_suffix(".partial")
         with partial_filename.open("wb") as fp:
             vprint(f"Writing file: {self.filename}.partial")
-            async for chunk, _ in response.content.iter_chunks():
+            async for chunk in response.aiter_bytes():
                 fp.write(chunk)
         partial_filename.rename(self.full_path)
 
 
-async def download_rss(http, rss_url: str):
+async def download_rss(http: httpx.AsyncClient, rss_url: str):
     click.echo(f"Downloading RSS feed: {rss_url} ...")
-    async with http.get(rss_url) as res:
-        return etree.XML(await res.read())
+    res = await http.get(rss_url)
+    return etree.XML(res.content)
 
 
 def ensure_download_dir(download_dir: Path):
