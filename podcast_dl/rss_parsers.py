@@ -3,6 +3,7 @@ URL to filename parsers. They can be generic or entirely site-specific, based on
 what type of file names the RSS contains.
 """
 import os
+
 from lxml import etree
 from slugify import slugify
 
@@ -32,7 +33,10 @@ class BaseItem:
     @property
     def episode(self):
         episode_elem = self._rss_item.xpath("itunes:episode", namespaces=self.NSMAP)
-        return episode_elem[0].text.zfill(4) if episode_elem else None
+        if len(episode_elem) == 0:
+            return None
+        episode = episode_elem[0].text
+        return episode.zfill(4) if episode else None
 
     @property
     def file_ext(self):
@@ -63,26 +67,15 @@ class TalkPythonItem(BaseItem):
 
 class ChangelogItem(BaseItem):
     @property
-    def title(self):
-        super_title = super().title
-        try:
-            # Example title: "1: Haml, Sass, Compass"
-            return super_title.split(": ", 1)[1]
-        except IndexError:
-            # The split failed, no episode number in the title
-            return super_title
-
-    @property
     def episode(self):
-        # Example title: "1: Haml, Sass, Compass"
-        try:
-            episode, _ = super().title.split(": ", 1)
-        except ValueError:
-            # The split failed, no episode number in the title
-            # e.g. "Jeff Robbins is an actual rockstar"
-            return None
-        else:
-            return episode.zfill(4)
+        super_episode = super().episode
+        if super_episode:
+            return super_episode
+        # There are episodes without episode number in the news section,
+        # they have a different link: https://changelog.com/podcast/news-2023-01-09
+        # Use the last part of that link as the episode number
+        link = self._rss_item.xpath("link")[0].text
+        return link.rsplit("/", 1)[-1]
 
 
 class IndieHackersItem(BaseItem):

@@ -16,7 +16,8 @@ def changelog_item():
     return etree.XML(
         f"""
         <item {ITUNES_XMLNS}>
-          <title>315: Join the federation?! Mastodon awaits...</title>
+          <title>Join the federation?! Mastodon awaits...</title>
+          <itunes:episode>315</itunes:episode>
           <enclosure url="https://cdn.changelog.com/uploads/podcast/315/the-changelog-315.mp3" length="121018247" type="audio/mpeg" />
         </item>
         """
@@ -72,12 +73,10 @@ def indiehackers_item():
 class TestBaseItem:
     def test_changelog(self, changelog_item):
         rss_item = BaseItem(changelog_item)
-        assert rss_item.episode is None
-        assert rss_item.title == "315: Join the federation?! Mastodon awaits..."
+        assert rss_item.episode == "0315"
+        assert rss_item.title == "Join the federation?! Mastodon awaits..."
         assert rss_item.file_ext == ".mp3"
-        # This is NOT the episode number (it doesn't know about that,
-        # so it's just the original slugify-ed title)
-        assert rss_item.filename == "315-Join-the-federation-Mastodon-awaits.mp3"
+        assert rss_item.filename == "0315-Join-the-federation-Mastodon-awaits.mp3"
 
     def test_podcastinit(self, podcastinit_item):
         rss_item = BaseItem(podcastinit_item)

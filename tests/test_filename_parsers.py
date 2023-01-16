@@ -1,9 +1,10 @@
 import pytest
 from lxml.builder import ElementMaker
+
 from podcast_dl import rss_parsers as rspa
 
 
-def _make_item(url, title, episode=None):
+def _make_item(url, title, episode=None, link=None):
     episode_ns = "http://www.itunes.com/dtds/podcast-1.0.dtd"
     E = ElementMaker(nsmap={"itunes": episode_ns})
     item = E.item(
@@ -12,6 +13,8 @@ def _make_item(url, title, episode=None):
     )
     if episode is not None:
         item.append(E("{" + episode_ns + "}episode", str(episode)))
+    if link is not None:
+        item.append(E("link", link))
     return item
 
 
@@ -115,36 +118,46 @@ def test_podcastinit(url, title, episode, expected_filename):
 
 
 @pytest.mark.parametrize(
-    "url, title, expected_filename",
+    "url, title, episode, expected_filename",
     (
         (
             "https://cdn.changelog.com/uploads/podcast/1/the-changelog-1.mp3",
-            "1: Haml, Sass, Compass",
+            "Haml, Sass, Compass",
+            "1",
             "0001-Haml-Sass-Compass.mp3",
         ),
         (
             "https://cdn.changelog.com/uploads/podcast/42/the-changelog-42.mp3",
-            "42: Rails 3.1 and SproutCore",
+            "Rails 3.1 and SproutCore",
+            "42",
             "0042-Rails-3-1-and-SproutCore.mp3",
         ),
         (
             "https://cdn.changelog.com/uploads/podcast/192/the-changelog-192.mp3",
-            "192: Crystal: Fast as C, Slick as Ruby",
+            "Crystal: Fast as C, Slick as Ruby",
+            "192",
             "0192-Crystal-Fast-as-C-Slick-as-Ruby.mp3",
         ),
         (
             "https://cdn.changelog.com/uploads/podcast/317/the-changelog-317.mp3",
-            "317: #Hacktoberfest isn’t just about a free shirt",
+            "#Hacktoberfest isn’t just about a free shirt",
+            "317",
             "0317-Hacktoberfest-isnt-just-about-a-free-shirt.mp3",
         ),
-        (
-            "https://cdn.changelog.com/uploads/podcast/afk-jeff-bonus/the-changelog-afk-jeff-bonus.mp3",
-            "Jeff Robbins is an actual rockstar",
-            "Jeff-Robbins-is-an-actual-rockstar.mp3",
-        ),
     ),
-    ids=["1-digit", "2-digits", "two-colons", "3-digits", "no-episode"],
+    ids=["1-digit", "2-digits", "two-colons", "3-digits"],
 )
-def test_changelog(url, title, expected_filename):
-    item = _make_item(url, title)
+def test_changelog(url, title, episode, expected_filename):
+    item = _make_item(url, title, episode)
     assert rspa.ChangelogItem(item).filename == expected_filename
+
+
+def test_changelog_no_episode():
+    url = "https://cdn.changelog.com/uploads/podcast/afk-jeff-bonus/the-changelog-afk-jeff-bonus.mp3"
+    title = "Jeff Robbins is an actual rockstar"
+    link = "https://changelog.com/podcast/afk-jeff-bonus"
+    item = _make_item(url, title, episode=None, link=link)
+    assert (
+        rspa.ChangelogItem(item).filename
+        == "afk-jeff-bonus-Jeff-Robbins-is-an-actual-rockstar.mp3"
+    )
