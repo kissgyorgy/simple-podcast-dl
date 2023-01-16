@@ -1,12 +1,12 @@
+import pytest
 from lxml import etree
+
 from podcast_dl.rss_parsers import (
     BaseItem,
     ChangelogItem,
-    TalkPythonItem,
     IndieHackersItem,
+    TalkPythonItem,
 )
-import pytest
-
 
 ITUNES_XMLNS = 'xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"'
 

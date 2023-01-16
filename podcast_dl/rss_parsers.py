@@ -22,7 +22,7 @@ class BaseItem:
     @property
     def url(self):
         # will raise a ValueError if not exactly one element found
-        enclosure, = self._rss_item.xpath("enclosure")
+        (enclosure,) = self._rss_item.xpath("enclosure")
         return enclosure.get("url")
 
     @property

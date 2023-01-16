@@ -3,19 +3,16 @@ from lxml.builder import ElementMaker
 from podcast_dl import rss_parsers as rspa
 
 
-# fmt: off
 def _make_item(url, title, episode=None):
     episode_ns = "http://www.itunes.com/dtds/podcast-1.0.dtd"
     E = ElementMaker(nsmap={"itunes": episode_ns})
     item = E.item(
         E.enclosure(url=url, length="1234", type="audio/mpeg"),
-        E.title(title)
+        E.title(title),
     )
     if episode is not None:
         item.append(E("{" + episode_ns + "}episode", str(episode)))
     return item
-
-# fmt: on
 
 
 @pytest.mark.parametrize(
