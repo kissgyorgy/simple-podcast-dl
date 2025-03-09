@@ -1,9 +1,11 @@
 import asyncio
-from pathlib import Path
 from operator import attrgetter
+from pathlib import Path
+
 import click
 import httpx
 from lxml import etree
+
 from .rss_parsers import BaseItem
 
 
@@ -109,7 +111,7 @@ def find_missing(episodes, vprint):
 
 
 async def download_episodes(http, episodes, max_threads, vprint, progressbar):
-    click.echo(f"Downloading episodes...")
+    click.echo("Downloading episodes...")
 
     semaphore = asyncio.Semaphore(max_threads)
 
@@ -121,4 +123,4 @@ async def download_episodes(http, episodes, max_threads, vprint, progressbar):
     with progressbar:
         progressbar.update(0)
         coros = [with_progressbar(ep.download(http, vprint)) for ep in episodes]
-        await asyncio.wait(coros)
+        await asyncio.wait(asyncio.create_task(coro) for coro in coros)

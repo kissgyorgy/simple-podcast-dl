@@ -1,17 +1,19 @@
 """
 List of podcasts and their filename parser types.
 """
+
+import attrs
+
 from . import rss_parsers as rssp
-import attr
 
 
-@attr.s(slots=True, frozen=True)
+@attrs.define(slots=True, frozen=True)
 class Podcast:
-    name = attr.ib(type=str)
-    title = attr.ib(type=str)
-    url = attr.ib(type=str)
-    rss = attr.ib(type=str)
-    rss_parser = attr.ib(type=rssp.BaseItem)
+    name: str
+    title: str
+    url: str
+    rss: str
+    rss_parser: type[rssp.BaseItem]
 
 
 PODCASTS = [
